@@ -5,10 +5,14 @@ import '../../models/news.dart';
 import '../../services/api_service.dart';
 import '../../utils/theme.dart';
 
+// 选中的新闻分类Provider
+final selectedCategoryProvider = StateProvider<String?>((ref) => null);
+
 // 新闻列表Provider
 final newsListProvider = FutureProvider<List<News>>((ref) async {
   final apiService = ref.read(apiServiceProvider);
-  final response = await apiService.getNews();
+  final selectedCategory = ref.watch(selectedCategoryProvider);
+  final response = await apiService.getNews(category: selectedCategory);
   return response.data;
 });
 
@@ -18,11 +22,18 @@ class NewsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final newsListAsync = ref.watch(newsListProvider);
+    final selectedCategory = ref.watch(selectedCategoryProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('足球新闻'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              context.go('/search');
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
@@ -31,7 +42,14 @@ class NewsScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
+      body: Column(
+        children: [
+          // 分类筛选栏
+          _buildCategoryFilter(ref, selectedCategory),
+          
+          // 新闻列表
+          Expanded(
+            child: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(newsListProvider);
         },
@@ -104,6 +122,52 @@ class NewsScreen extends ConsumerWidget {
             );
           },
         ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryFilter(WidgetRef ref, String? selectedCategory) {
+    const categories = [
+      {'key': null, 'name': '全部', 'color': Color(0xFF2196F3)},
+      {'key': 'news', 'name': '新闻', 'color': Color(0xFF00C851)},
+      {'key': 'transfer', 'name': '转会', 'color': Color(0xFFFF6B35)},
+      {'key': 'match', 'name': '比赛', 'color': Color(0xFF007BFF)},
+      {'key': 'analysis', 'name': '分析', 'color': Color(0xFFAA66CC)},
+    ];
+
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: categories.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          final isSelected = selectedCategory == category['key'];
+          
+          return FilterChip(
+            label: Text(
+              category['name'] as String,
+              style: TextStyle(
+                color: isSelected ? Colors.white : null,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+            selected: isSelected,
+            onSelected: (selected) {
+              ref.read(selectedCategoryProvider.notifier).state = 
+                  selected ? category['key'] as String? : null;
+            },
+            backgroundColor: Colors.grey[100],
+            selectedColor: category['color'] as Color,
+            checkmarkColor: Colors.white,
+          );
+        },
       ),
     );
   }

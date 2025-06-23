@@ -144,6 +144,185 @@ router.get('/api/v1/news', (ctx) => {
   };
 });
 
+// 获取比赛列表
+router.get('/api/v1/matches', (ctx) => {
+  const queryDate = ctx.request.url.searchParams.get('date');
+  const targetDate = queryDate ? new Date(queryDate) : new Date();
+  
+  const mockMatches = [
+    {
+      id: '1',
+      homeTeam: '皇家马德里',
+      awayTeam: '巴塞罗那',
+      homeTeamLogo: '',
+      awayTeamLogo: '',
+      homeScore: 2,
+      awayScore: 1,
+      matchTime: new Date(targetDate.getTime() + 2 * 60 * 60 * 1000).toISOString(), // 2小时后
+      status: 'finished',
+      competition: '西甲',
+      venue: '伯纳乌球场',
+      minute: null,
+      events: [
+        {
+          id: '1',
+          type: 'goal',
+          minute: 23,
+          player: '本泽马',
+          team: 'home',
+          description: '点球破门'
+        },
+        {
+          id: '2',
+          type: 'goal',
+          minute: 45,
+          player: '梅西',
+          team: 'away',
+          description: '任意球直接破门'
+        },
+        {
+          id: '3',
+          type: 'goal',
+          minute: 78,
+          player: '维尼修斯',
+          team: 'home',
+          description: '反击破门'
+        }
+      ]
+    },
+    {
+      id: '2',
+      homeTeam: '曼城',
+      awayTeam: '利物浦',
+      homeTeamLogo: '',
+      awayTeamLogo: '',
+      homeScore: 1,
+      awayScore: 1,
+      matchTime: new Date(targetDate.getTime() + 4 * 60 * 60 * 1000).toISOString(), // 4小时后
+      status: 'live',
+      competition: '英超',
+      venue: '伊蒂哈德球场',
+      minute: 67,
+      events: [
+        {
+          id: '4',
+          type: 'goal',
+          minute: 12,
+          player: '哈兰德',
+          team: 'home',
+          description: '近距离推射'
+        },
+        {
+          id: '5',
+          type: 'goal',
+          minute: 56,
+          player: '萨拉赫',
+          team: 'away',
+          description: '单刀破门'
+        }
+      ]
+    },
+    {
+      id: '3',
+      homeTeam: '拜仁慕尼黑',
+      awayTeam: '多特蒙德',
+      homeTeamLogo: '',
+      awayTeamLogo: '',
+      homeScore: null,
+      awayScore: null,
+      matchTime: new Date(targetDate.getTime() + 6 * 60 * 60 * 1000).toISOString(), // 6小时后
+      status: 'scheduled',
+      competition: '德甲',
+      venue: '安联球场',
+      minute: null,
+      events: []
+    },
+    {
+      id: '4',
+      homeTeam: 'AC米兰',
+      awayTeam: '国际米兰',
+      homeTeamLogo: '',
+      awayTeamLogo: '',
+      homeScore: null,
+      awayScore: null,
+      matchTime: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 明天
+      status: 'scheduled',
+      competition: '意甲',
+      venue: '圣西罗球场',
+      minute: null,
+      events: []
+    }
+  ];
+
+  // 根据日期筛选比赛
+  const filteredMatches = mockMatches.filter(match => {
+    const matchDate = new Date(match.matchTime);
+    return matchDate.toDateString() === targetDate.toDateString();
+  });
+
+  ctx.response.body = {
+    success: true,
+    data: filteredMatches,
+    meta: {
+      total: filteredMatches.length,
+      timestamp: new Date().toISOString(),
+      date: targetDate.toISOString().split('T')[0],
+    },
+  };
+});
+
+// 获取单个比赛详情
+router.get('/api/v1/matches/:id', (ctx) => {
+  const id = ctx.params.id;
+  
+  // 模拟比赛详情数据
+  const matchDetail = {
+    id,
+    homeTeam: '皇家马德里',
+    awayTeam: '巴塞罗那',
+    homeTeamLogo: '',
+    awayTeamLogo: '',
+    homeScore: 2,
+    awayScore: 1,
+    matchTime: new Date().toISOString(),
+    status: 'finished',
+    competition: '西甲',
+    venue: '伯纳乌球场',
+    minute: null,
+    events: [
+      {
+        id: '1',
+        type: 'goal',
+        minute: 23,
+        player: '本泽马',
+        team: 'home',
+        description: '点球破门'
+      },
+      {
+        id: '2',
+        type: 'goal',
+        minute: 45,
+        player: '梅西',
+        team: 'away',
+        description: '任意球直接破门'
+      },
+      {
+        id: '3',
+        type: 'goal',
+        minute: 78,
+        player: '维尼修斯',
+        team: 'home',
+        description: '反击破门'
+      }
+    ]
+  };
+
+  ctx.response.body = {
+    success: true,
+    data: matchDetail,
+  };
+});
+
 // 获取单个新闻详情
 router.get('/api/v1/news/:id', (ctx) => {
   const id = ctx.params.id;

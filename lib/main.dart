@@ -5,7 +5,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/news/news_screen.dart';
+
+import 'screens/news/news_search_screen.dart';
+import 'screens/news/favorites_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'screens/profile/reading_history_screen.dart';
+import 'screens/matches/matches_screen.dart';
 import 'utils/theme.dart';
 import 'services/auth_service.dart';
 import 'widgets/main_navigation.dart';
@@ -53,11 +58,29 @@ class BallScoutApp extends ConsumerWidget {
               ),
             ),
             GoRoute(
+              path: '/matches',
+              pageBuilder: (context, state) => const NoTransitionPage(
+                child: MatchesScreen(),
+              ),
+            ),
+            GoRoute(
               path: '/news/:id',
               builder: (context, state) {
                 final id = state.pathParameters['id']!;
                 return NewsDetailScreen(newsId: id);
               },
+            ),
+            GoRoute(
+              path: '/search',
+              builder: (context, state) => const NewsSearchScreen(),
+            ),
+            GoRoute(
+              path: '/favorites',
+              builder: (context, state) => const FavoritesScreen(),
+            ),
+            GoRoute(
+              path: '/reading-history',
+              builder: (context, state) => const ReadingHistoryScreen(),
             ),
             GoRoute(
               path: '/profile',
@@ -116,7 +139,7 @@ class HomeTab extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              // TODO: 实现搜索功能
+              context.go('/search');
             },
           ),
         ],
@@ -163,13 +186,6 @@ class NewsDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('新闻详情'),
-      ),
-      body: Center(
-        child: Text('新闻详情页面: $newsId'),
-      ),
-    );
+    return NewsDetailScreen(newsId: newsId);
   }
 } 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../utils/theme.dart';
 
@@ -129,13 +130,13 @@ class ProfileScreen extends ConsumerWidget {
         icon: Icons.favorite_outline,
         title: '我的收藏',
         subtitle: '收藏的新闻和文章',
-        onTap: () => _showComingSoon(context, '收藏'),
+        onTap: () => context.go('/favorites'),
       ),
       _MenuItem(
         icon: Icons.history,
         title: '阅读历史',
         subtitle: '查看最近阅读的内容',
-        onTap: () => _showComingSoon(context, '阅读历史'),
+        onTap: () => context.go('/reading-history'),
       ),
       _MenuItem(
         icon: Icons.notifications_none,

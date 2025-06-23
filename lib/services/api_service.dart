@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/news.dart';
 import '../models/user.dart';
+import '../models/match.dart';
 
 // API服务Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
@@ -81,6 +82,46 @@ class ApiService {
     try {
       final response = await _dio.get('/api/v1/news/$id');
       return News.fromJson(response.data['data']);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // 获取比赛列表
+  Future<MatchResponse> getMatches({
+    DateTime? date,
+    String? competition,
+    String? status,
+  }) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      
+      if (date != null) {
+        queryParams['date'] = date.toIso8601String().split('T')[0];
+      }
+      if (competition != null) {
+        queryParams['competition'] = competition;
+      }
+      if (status != null) {
+        queryParams['status'] = status;
+      }
+
+      final response = await _dio.get(
+        '/api/v1/matches',
+        queryParameters: queryParams,
+      );
+
+      return MatchResponse.fromJson(response.data);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // 获取比赛详情
+  Future<Match> getMatchDetail(String id) async {
+    try {
+      final response = await _dio.get('/api/v1/matches/$id');
+      return Match.fromJson(response.data['data']);
     } catch (e) {
       throw _handleError(e);
     }

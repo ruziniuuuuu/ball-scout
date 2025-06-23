@@ -63,10 +63,7 @@ class MainNavigation extends StatelessWidget {
         context.go('/news');
         break;
       case 2:
-        // TODO: 实现赛事页面
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('赛事功能开发中...')),
-        );
+        context.go('/matches');
         break;
       case 3:
         context.go('/profile');
