@@ -1,39 +1,12 @@
 import { Application, Router, oakCors, load, log } from './deps.ts';
-import { DatabaseManager, RedisManager, initializeDatabase } from './shared/db.ts';
-import { AppConfig, ServiceError } from './shared/types.ts';
-
-// 导入服务路由
-import { newsRouter } from './services/news/router.ts';
-import { userRouter } from './services/user/router.ts';
 
 // 加载环境变量
 await load({ export: true });
 
 // 应用配置
-const config: AppConfig = {
+const config = {
   port: parseInt(Deno.env.get('PORT') || '8000'),
-  env: (Deno.env.get('NODE_ENV') || 'development') as 'development' | 'staging' | 'production',
-  database: {
-    host: Deno.env.get('DB_HOST') || 'localhost',
-    port: parseInt(Deno.env.get('DB_PORT') || '5432'),
-    database: Deno.env.get('DB_NAME') || 'ball_scout',
-    username: Deno.env.get('DB_USER') || 'postgres',
-    password: Deno.env.get('DB_PASSWORD') || 'password',
-  },
-  jwt: {
-    secret: Deno.env.get('JWT_SECRET') || 'your-secret-key',
-    expiresIn: Deno.env.get('JWT_EXPIRES_IN') || '7d',
-  },
-  redis: {
-    host: Deno.env.get('REDIS_HOST') || 'localhost',
-    port: parseInt(Deno.env.get('REDIS_PORT') || '6379'),
-    password: Deno.env.get('REDIS_PASSWORD'),
-  },
-  ai: {
-    openaiApiKey: Deno.env.get('OPENAI_API_KEY'),
-    claudeApiKey: Deno.env.get('CLAUDE_API_KEY'),
-    tongYiApiKey: Deno.env.get('TONGYI_API_KEY'),
-  },
+  env: Deno.env.get('NODE_ENV') || 'development',
 };
 
 // 初始化日志
@@ -43,17 +16,13 @@ await log.setup({
   },
   loggers: {
     default: {
-      level: config.env === 'production' ? 'INFO' : 'DEBUG',
+      level: 'DEBUG',
       handlers: ['console'],
     },
   },
 });
 
 const logger = log.getLogger();
-
-// 初始化数据库连接
-const db = new DatabaseManager(config.database);
-const redis = new RedisManager(config.redis);
 
 // 创建Oak应用
 const app = new Application();
@@ -64,35 +33,20 @@ app.use(async (ctx, next) => {
     await next();
   } catch (error) {
     logger.error('请求处理错误:', error);
-    
-    if (error instanceof ServiceError) {
-      ctx.response.status = error.statusCode;
-      ctx.response.body = {
-        success: false,
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-        },
-      };
-    } else {
-      ctx.response.status = 500;
-      ctx.response.body = {
-        success: false,
-        error: {
-          code: 'INTERNAL_SERVER_ERROR',
-          message: config.env === 'production' ? '服务器内部错误' : error.message,
-        },
-      };
-    }
+    ctx.response.status = 500;
+    ctx.response.body = {
+      success: false,
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: config.env === 'production' ? '服务器内部错误' : error.message,
+      },
+    };
   }
 });
 
 // CORS中间件
 app.use(oakCors({
-  origin: config.env === 'production' 
-    ? ['https://ballscout.app', 'https://www.ballscout.app']
-    : true,
+  origin: true,
   credentials: true,
 }));
 
@@ -104,36 +58,105 @@ app.use(async (ctx, next) => {
   logger.info(`${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} - ${duration}ms`);
 });
 
+// 创建基础路由
+const router = new Router();
+
 // 健康检查
-const healthRouter = new Router();
-healthRouter.get('/health', (ctx) => {
+router.get('/health', (ctx) => {
   ctx.response.body = {
     success: true,
     data: {
       status: 'ok',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
+      message: '球探社后端服务运行正常 ⚽',
+    },
+  };
+});
+
+// 测试API - 获取模拟新闻数据
+router.get('/api/v1/news', (ctx) => {
+  const mockNews = [
+    {
+      id: '1',
+      title: '皇马签下新星前锋',
+      summary: '皇马官方宣布签下年仅19岁的巴西新星前锋...',
+      source: 'ESPN',
+      category: 'transfer',
+      publishedAt: new Date().toISOString(),
+      readCount: 1205,
+    },
+    {
+      id: '2', 
+      title: '欧冠八强对阵出炉',
+      summary: '2024年欧冠八强抽签结果公布，精彩对决即将上演...',
+      source: 'UEFA',
+      category: 'match',
+      publishedAt: new Date().toISOString(),
+      readCount: 2350,
+    },
+    {
+      id: '3',
+      title: 'C罗创造新纪录',
+      summary: '葡萄牙巨星C罗在昨晚的比赛中再次创造历史...',
+      source: 'Goal.com',
+      category: 'news',
+      publishedAt: new Date().toISOString(),
+      readCount: 5678,
+    },
+  ];
+
+  ctx.response.body = {
+    success: true,
+    data: mockNews,
+    meta: {
+      total: mockNews.length,
+      timestamp: new Date().toISOString(),
+    },
+  };
+});
+
+// 测试API - 用户注册
+router.post('/api/v1/auth/register', async (ctx) => {
+  const body = await ctx.request.body().value;
+  
+  ctx.response.status = 201;
+  ctx.response.body = {
+    success: true,
+    data: {
+      user: {
+        id: crypto.randomUUID(),
+        username: body.username || '测试用户',
+        email: body.email || 'test@example.com',
+      },
+      token: 'mock-jwt-token',
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+    },
+  };
+});
+
+// API文档
+router.get('/api', (ctx) => {
+  ctx.response.body = {
+    message: '🏆 球探社 API 文档',
+    version: '1.0.0',
+    endpoints: {
+      'GET /health': '健康检查',
+      'GET /api/v1/news': '获取新闻列表',
+      'POST /api/v1/auth/register': '用户注册',
+    },
+    example: {
+      news: 'curl http://localhost:8000/api/v1/news',
+      register: 'curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d \'{"username":"test","email":"test@example.com","password":"123456"}\'',
     },
   };
 });
 
 // 注册路由
-app.use(healthRouter.routes());
-app.use(healthRouter.allowedMethods());
-
-// 将数据库连接添加到上下文
-app.use(async (ctx, next) => {
-  ctx.state.db = db;
-  ctx.state.redis = redis;
-  ctx.state.config = config;
-  await next();
-});
-
-// 注册业务路由
-app.use(newsRouter.routes());
-app.use(newsRouter.allowedMethods());
-app.use(userRouter.routes());
-app.use(userRouter.allowedMethods());
+app.use(router.routes());
+app.use(router.allowedMethods());
 
 // 404处理
 app.use((ctx) => {
@@ -150,16 +173,10 @@ app.use((ctx) => {
 // 启动应用
 async function startServer() {
   try {
-    // 连接数据库
-    await db.connect();
-    await redis.connect();
-    
-    // 初始化数据库表
-    await initializeDatabase(db);
-    
-    // 启动HTTP服务器
     logger.info(`🚀 球探社后端服务启动成功`);
     logger.info(`🌐 服务地址: http://localhost:${config.port}`);
+    logger.info(`📖 API文档: http://localhost:${config.port}/api`);
+    logger.info(`💚 健康检查: http://localhost:${config.port}/health`);
     logger.info(`🛠️ 运行环境: ${config.env}`);
     
     await app.listen({ port: config.port });
@@ -173,8 +190,6 @@ async function startServer() {
 function setupGracefulShutdown() {
   const shutdown = async () => {
     logger.info('正在关闭服务...');
-    await db.disconnect();
-    await redis.disconnect();
     logger.info('服务已关闭');
     Deno.exit(0);
   };

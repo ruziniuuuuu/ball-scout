@@ -10,13 +10,23 @@ export { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 export type { ClientOptions } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 export { connect } from "https://deno.land/x/redis@v0.31.0/mod.ts";
 
-// HTTP客户端
-export { fetchWithTimeout } from "https://deno.land/x/fetch_with_timeout@v1.0.0/mod.ts";
-
-// 验证和加密
+// 验证和加密 - 先简化，移除bcrypt
 export { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.1/mod.ts";
 export type { Header, Payload } from "https://deno.land/x/djwt@v3.0.1/mod.ts";
-export { hash, verify as verifyPassword } from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
+
+// 简单的密码哈希函数（开发阶段使用）
+export async function hash(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + 'salt');
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const passwordHash = await hash(password);
+  return passwordHash === hash;
+}
 
 // 数据验证
 export { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
@@ -31,4 +41,27 @@ export * as log from "https://deno.land/std@0.208.0/log/mod.ts";
 export { v4 as generateUuid } from "https://deno.land/std@0.208.0/uuid/mod.ts";
 
 // 时间处理
-export { format, parse } from "https://deno.land/std@0.208.0/datetime/mod.ts"; 
+export { format, parse } from "https://deno.land/std@0.208.0/datetime/mod.ts";
+
+// HTTP客户端工具函数
+export async function fetchWithTimeout(
+  input: string | URL | Request,
+  init?: RequestInit & { timeout?: number }
+): Promise<Response> {
+  const { timeout = 8000, ...options } = init || {};
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(input, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+} 

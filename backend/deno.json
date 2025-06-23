@@ -1,9 +1,4 @@
 {
-  "compilerOptions": {
-    "allowJs": true,
-    "lib": ["deno.window"],
-    "strict": true
-  },
   "fmt": {
     "files": {
       "include": ["**/*.ts", "**/*.js"],
@@ -45,7 +40,6 @@
     "@postgres/": "https://deno.land/x/postgres@v0.17.0/",
     "@redis/": "https://deno.land/x/redis@v0.31.0/",
     "@jwt/": "https://deno.land/x/djwt@v3.0.1/",
-    "@bcrypt/": "https://deno.land/x/bcrypt@v0.4.1/",
     "@zod/": "https://deno.land/x/zod@v3.22.4/"
   }
 } 
