@@ -1,0 +1,91 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 文件忽略规则
+
+在阅读项目代码时，请忽略以下文件和目录，以节省token并聚焦于核心业务逻辑：
+
+## 🚫 依赖和构建产物
+```
+# Flutter/Dart
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.packages
+
+# Node.js
+node_modules/
+*.lock
+pnpm-lock.yaml
+yarn.lock
+
+# Rust
+target/
+Cargo.lock
+
+# 通用构建产物
+dist/
+out/
+```
+
+## 🚫 配置和敏感文件
+```
+# 环境变量和密钥
+.env
+.env.*
+*.keystore
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
+# 证书和密钥
+*.p12
+*.key
+*.crt
+```
+
+## 🚫 IDE和系统文件
+```
+# IDE配置
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+```
+
+## 🚫 日志和缓存
+```
+# 日志文件
+*.log
+logs/
+
+# 缓存目录
+.cache/
+.temp/
+tmp/
+```
+
+## ✅ 重要文件（优先读取）
+请优先关注这些核心文件：
+- `lib/` - Flutter源代码
+- `pubspec.yaml` - Flutter项目配置
+- `analysis_options.yaml` - Dart代码分析配置
+- `README.md` - 项目文档
+- `backend/` - 后端服务代码
+- `api/` - API接口定义
+
+## 📋 AI助手行为指南
+1. **聚焦业务逻辑**: 优先理解功能实现而非配置文件
+2. **模块化思考**: 按功能模块分析代码结构
+3. **性能优先**: 提供性能优化建议
+4. **安全意识**: 注意数据安全和隐私保护
+5. **国际化考虑**: 支持多语言和本地化需求

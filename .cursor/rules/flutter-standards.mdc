@@ -1,0 +1,75 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Flutter开发标准
+
+## 项目结构
+```
+lib/
+├── main.dart                 # 应用入口
+├── app/                      # 应用层配置
+│   ├── app.dart             # 主应用配置
+│   ├── routes/              # 路由配置
+│   └── themes/              # 主题配置
+├── core/                     # 核心功能
+│   ├── constants/           # 常量定义
+│   ├── errors/              # 错误处理
+│   ├── network/             # 网络请求
+│   ├── utils/               # 工具函数
+│   └── services/            # 核心服务
+├── features/                 # 功能模块
+│   ├── news/                # 新闻功能
+│   ├── matches/             # 比赛功能
+│   ├── teams/               # 球队功能
+│   ├── community/           # 社区功能
+│   └── profile/             # 用户功能
+└── shared/                   # 共享组件
+    ├── widgets/             # 通用UI组件
+    ├── models/              # 数据模型
+    └── providers/           # 状态管理
+```
+
+## 编码规范
+
+### 命名约定
+- **文件名**: 使用蛇形命名法 (snake_case)
+- **类名**: 使用帕斯卡命名法 (PascalCase)
+- **变量/方法**: 使用驼峰命名法 (camelCase)
+- **常量**: 使用大写蛇形命名法 (SCREAMING_SNAKE_CASE)
+
+### 状态管理
+- 使用 **Riverpod** 进行状态管理
+- 数据层使用 Repository Pattern
+- UI层使用 Consumer/ConsumerWidget
+
+### UI组件规范
+- 优先使用 Material 3 设计规范
+- 自定义组件放在 shared/widgets/
+- 使用 themed 样式，支持暗黑模式
+- 响应式设计，适配不同屏幕尺寸
+
+### 网络请求
+- 使用 **Dio** 进行HTTP请求
+- 统一的API错误处理
+- 请求/响应拦截器用于日志和错误处理
+- 支持请求重试和缓存
+
+### 本地化
+- 使用 **flutter_localizations**
+- 支持中文简体/繁体
+- 国际化文件放在 lib/l10n/
+
+## 性能优化
+- 使用 const 构造函数
+- 避免在 build 方法中创建对象
+- 合理使用 ListView.builder 和 GridView.builder
+- 图片使用 cached_network_image 并压缩
+
+## 测试规范
+- 单元测试覆盖率 > 80%
+- Widget测试覆盖关键UI组件
+- 集成测试覆盖主要用户流程
+
+@flutter_project_template.dart

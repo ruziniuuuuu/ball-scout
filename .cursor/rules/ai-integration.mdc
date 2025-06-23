@@ -1,0 +1,105 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# AI集成和翻译服务标准
+
+## 多语言翻译策略
+
+### 支持的大模型API
+- **主力**: Claude-3.5-Sonnet (Anthropic) - 高质量翻译
+- **备选**: GPT-4 (OpenAI) - 稳定性保障
+- **本地化**: 通义千问 (阿里云) - 中文优化
+- **开源**: Llama-3.1-70B - 成本控制
+
+### 翻译质量保证
+```typescript
+interface TranslationRequest {
+  text: string;
+  sourceLanguage: string;
+  targetLanguage: 'zh-CN' | 'zh-TW';
+  domain: 'football' | 'sports' | 'news';
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface TranslationResult {
+  translatedText: string;
+  confidence: number; // 0-1
+  model: string;
+  processingTime: number;
+  qualityScore: number; // 基于足球术语准确性
+}
+```
+
+### 翻译优化策略
+- **术语库**: 维护足球专业术语中英对照表
+- **上下文感知**: 考虑球队、球员名称的一致性
+- **质量评估**: 自动检测翻译质量，低分重新翻译
+- **人工校验**: 重要新闻支持人工校验流程
+
+## 内容智能分析
+
+### 内容分类模型
+```typescript
+interface ContentAnalysis {
+  category: 'transfer' | 'match' | 'news' | 'rumor' | 'injury';
+  subCategory: string;
+  importance: 1 | 2 | 3 | 4 | 5; // 5为最重要
+  entities: {
+    players: string[];
+    teams: string[];
+    leagues: string[];
+    dates: Date[];
+  };
+  sentiment: 'positive' | 'negative' | 'neutral';
+  credibility: number; // 0-1, 基于来源可信度
+}
+```
+
+### 智能推荐算法
+- **用户画像**: 基于用户行为分析兴趣偏好
+- **内容相似度**: 使用embedding计算文章相似性
+- **时效性权重**: 新鲜内容获得更高权重
+- **互动数据**: 结合点赞、评论、分享数据
+
+## Prompt工程最佳实践
+
+### 翻译Prompt模板
+```
+你是一位专业的足球新闻翻译专家。请将以下{sourceLanguage}文本翻译成中文，要求：
+
+1. 保持足球术语的专业性和准确性
+2. 球员和球队名称使用中文惯用译名
+3. 保持原文的语气和风格
+4. 确保翻译流畅自然，符合中文表达习惯
+
+原文: {originalText}
+
+请直接返回翻译结果，无需额外说明。
+```
+
+### 内容分析Prompt
+```
+分析以下足球新闻内容，返回JSON格式的分析结果：
+
+1. 判断新闻类型（转会/比赛/伤病/传言等）
+2. 提取关键实体（球员/球队/联赛等）
+3. 评估新闻重要性（1-5分）
+4. 判断内容可信度（基于措辞和来源）
+
+新闻内容: {newsContent}
+```
+
+## API调用管理
+
+### 速率限制和成本控制
+- **分级处理**: 重要新闻使用高质量模型，一般新闻使用经济模型
+- **缓存策略**: 相似内容避免重复翻译
+- **批量处理**: 非紧急内容批量翻译降低成本
+- **错误重试**: 智能重试机制，避免浪费调用次数
+
+### 监控和优化
+- **翻译质量监控**: 定期人工抽检翻译质量
+- **成本分析**: 各模型成本效益分析
+- **性能优化**: 响应时间和准确率平衡
