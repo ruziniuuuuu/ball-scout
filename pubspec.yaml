@@ -48,9 +48,9 @@ dependencies:
   # 图片选择
   image_picker: ^1.0.4
   
-  # 推送通知
-  firebase_messaging: ^14.7.9
-  flutter_local_notifications: ^16.3.0
+  # 推送通知（暂时注释，避免依赖问题）
+  # firebase_messaging: ^14.7.9
+  # flutter_local_notifications: ^16.3.0
 
 dev_dependencies:
   flutter_test:
@@ -64,39 +64,42 @@ dev_dependencies:
   # 代码检查
   flutter_lints: ^3.0.0
   
-  # 图标生成
-  flutter_launcher_icons: ^0.13.1
+  # 图标生成（暂时注释）
+  # flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
   
-  assets:
-    - assets/images/
-    - assets/icons/
-    - assets/logos/
+  # 暂时注释assets，后续添加
+  # assets:
+  #   - assets/images/
+  #   - assets/icons/
+  #   - assets/logos/
   
-  fonts:
-    - family: PingFang
-      fonts:
-        - asset: assets/fonts/PingFang-Regular.ttf
-        - asset: assets/fonts/PingFang-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/PingFang-Semibold.ttf
-          weight: 600
-        - asset: assets/fonts/PingFang-Bold.ttf
-          weight: 700
+  # 暂时注释字体，使用系统默认字体
+  # fonts:
+  #   - family: PingFang
+  #     fonts:
+  #       - asset: assets/fonts/PingFang-Regular.ttf
+  #       - asset: assets/fonts/PingFang-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/PingFang-Semibold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/PingFang-Bold.ttf
+  #         weight: 700
 
-flutter_launcher_icons:
-  android: "launcher_icon"
-  ios: true
-  image_path: "assets/icon/ball_scout_icon.png"
-  min_sdk_android: 21
-  web:
-    generate: true
-    image_path: "assets/icon/ball_scout_icon.png"
-    background_color: "#hexcode"
-    theme_color: "#hexcode"
-  windows:
-    generate: true
-    image_path: "assets/icon/ball_scout_icon.png"
-    icon_size: 48 
+# 暂时注释图标配置
+# flutter_launcher_icons:
+#   android: "launcher_icon"
+#   ios: true
+#   image_path: "assets/icon/ball_scout_icon.png"
+#   min_sdk_android: 21
+#   web:
+#     generate: true
+#     image_path: "assets/icon/ball_scout_icon.png"
+#     background_color: "#hexcode"
+#     theme_color: "#hexcode"
+#   windows:
+#     generate: true
+#     image_path: "assets/icon/ball_scout_icon.png"
+#     icon_size: 48 

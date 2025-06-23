@@ -29,7 +29,6 @@ class AppTheme {
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
     ),
     
@@ -72,7 +71,6 @@ class AppTheme {
         textStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          fontFamily: 'PingFang',
         ),
       ),
     ),
@@ -83,49 +81,41 @@ class AppTheme {
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       headlineMedium: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       headlineSmall: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       titleLarge: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: darkGray,
-        fontFamily: 'PingFang',
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
         color: mediumGray,
-        fontFamily: 'PingFang',
       ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
         color: mediumGray,
-        fontFamily: 'PingFang',
       ),
     ),
     
@@ -155,7 +145,6 @@ class AppTheme {
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
     ),
     
@@ -172,49 +161,41 @@ class AppTheme {
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       headlineMedium: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.w600,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       headlineSmall: TextStyle(
         fontSize: 20,
         fontWeight: FontWeight.w600,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       titleLarge: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w600,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       titleMedium: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w500,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       bodyLarge: TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: Colors.white,
-        fontFamily: 'PingFang',
       ),
       bodyMedium: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
         color: Colors.white70,
-        fontFamily: 'PingFang',
       ),
       bodySmall: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
         color: Colors.white60,
-        fontFamily: 'PingFang',
       ),
     ),
   );
