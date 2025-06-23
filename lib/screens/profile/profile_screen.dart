@@ -18,10 +18,7 @@ class ProfileScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              // TODO: 打开设置页面
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('设置功能开发中...')),
-              );
+              context.go('/settings');
             },
           ),
         ],

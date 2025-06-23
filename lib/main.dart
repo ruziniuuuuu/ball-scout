@@ -11,8 +11,11 @@ import 'screens/news/favorites_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/profile/reading_history_screen.dart';
 import 'screens/matches/matches_screen.dart';
+import 'screens/matches/match_detail_screen.dart';
+import 'screens/profile/settings_screen.dart';
 import 'utils/theme.dart';
 import 'services/auth_service.dart';
+import 'services/theme_service.dart';
 import 'widgets/main_navigation.dart';
 
 void main() async {
@@ -33,6 +36,9 @@ class BallScoutApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+    final fontSize = ref.watch(fontSizeProvider);
+    
     final router = GoRouter(
       routes: [
         ShellRoute(
@@ -71,6 +77,13 @@ class BallScoutApp extends ConsumerWidget {
               },
             ),
             GoRoute(
+              path: '/match/:id',
+              builder: (context, state) {
+                final id = state.pathParameters['id']!;
+                return MatchDetailScreen(matchId: id);
+              },
+            ),
+            GoRoute(
               path: '/search',
               builder: (context, state) => const NewsSearchScreen(),
             ),
@@ -81,6 +94,10 @@ class BallScoutApp extends ConsumerWidget {
             GoRoute(
               path: '/reading-history',
               builder: (context, state) => const ReadingHistoryScreen(),
+            ),
+            GoRoute(
+              path: '/settings',
+              builder: (context, state) => const SettingsScreen(),
             ),
             GoRoute(
               path: '/profile',
@@ -116,9 +133,9 @@ class BallScoutApp extends ConsumerWidget {
 
     return MaterialApp.router(
       title: '球探社',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      theme: AppTheme.lightTheme.copyWithFontSize(fontSize),
+      darkTheme: AppTheme.darkTheme.copyWithFontSize(fontSize),
+      themeMode: themeMode,
       routerConfig: router,
       locale: const Locale('zh', 'CN'),
       debugShowCheckedModeBanner: false,
