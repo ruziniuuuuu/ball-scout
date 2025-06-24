@@ -1,9 +1,15 @@
 import { Application, Router, oakCors, load, log } from './deps.ts';
 import commentRouter from './services/community/router.ts';
 import translationRouter from './services/translation/router.ts';
+import enhancedNewsRouter from './services/news/enhanced-router.ts';
 
 // 加载环境变量
-await load({ export: true });
+try {
+  await load({ export: true });
+  console.log('✅ 环境变量加载成功');
+} catch (error) {
+  console.warn('⚠️ 环境变量文件不存在，使用默认配置');
+}
 
 // 应用配置
 const config = {
@@ -68,10 +74,11 @@ router.get('/health', (ctx) => {
   ctx.response.body = {
     success: true,
     data: {
-      status: 'ok',
+      status: 'healthy',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       message: '球探社后端服务运行正常 ⚽',
+      uptime: Math.floor(performance.now() / 1000),
     },
   };
 });
@@ -503,6 +510,10 @@ app.use(commentRouter.allowedMethods());
 // 注册翻译路由
 app.use(translationRouter.routes());
 app.use(translationRouter.allowedMethods());
+
+// 注册增强新闻路由
+app.use(enhancedNewsRouter.routes());
+app.use(enhancedNewsRouter.allowedMethods());
 
 // 404处理
 app.use((ctx) => {

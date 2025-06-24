@@ -1,40 +1,75 @@
-// 翻译服务类型定义
+/**
+ * 翻译服务类型定义
+ */
+
 export interface TranslationRequest {
   text: string;
   sourceLanguage: string;
-  targetLanguage: 'zh-CN' | 'zh-TW';
-  domain: 'football' | 'sports' | 'news';
-  priority: 'high' | 'medium' | 'low';
+  targetLanguage: string;
+  domain?: 'football' | 'general';
+  priority?: 'high' | 'medium' | 'low';
+  context?: string;
+  style?: 'formal' | 'casual' | 'concise' | 'detailed';
+  maxLength?: number;
+  provider?: string;
 }
 
 export interface TranslationResult {
   translatedText: string;
-  confidence: number; // 0-1
+  confidence: number;
   model: string;
   processingTime: number;
-  qualityScore: number; // 基于足球术语准确性
+  qualityScore: number;
   originalText: string;
   sourceLanguage: string;
   targetLanguage: string;
   timestamp: string;
+  provider?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface TranslationProvider {
-  name: string;
-  apiKey: string;
-  endpoint: string;
-  priority: number;
-  costPerToken: number;
-  maxTokens: number;
-  supportedLanguages: string[];
+  translate(request: TranslationRequest): Promise<TranslationResult>;
+  isAvailable(): boolean;
+  getStatus(): ProviderStatus;
+}
+
+export interface ProviderStatus {
+  available: boolean;
+  rateLimit?: {
+    remaining: number;
+    resetTime: number;
+  };
+  lastError?: string;
+  performance?: {
+    averageResponseTime: number;
+    successRate: number;
+  };
+}
+
+export interface CacheEntry {
+  translatedText: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  timestamp: number;
+  provider: string;
+  qualityScore: number;
 }
 
 export interface FootballTerms {
-  [key: string]: {
-    zh: string;
-    aliases: string[];
-    category: 'player' | 'team' | 'position' | 'tactic' | 'competition';
+  getTermMappings(): Map<string, string>;
+  getProtectedTerms(): string[];
+  getTeamMappings(): Map<string, string>;
+  getPlayerMappings(): Map<string, string>;
+  getCompetitionMappings(): Map<string, string>;
+  replaceTerms(text: string): string;
+  detectFootballEntities(text: string): {
+    teams: string[];
+    players: string[];
+    competitions: string[];
+    terms: string[];
   };
+  generateContextPrompt(text: string): string;
 }
 
 export interface TranslationCache {

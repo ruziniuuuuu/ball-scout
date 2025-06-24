@@ -83,12 +83,18 @@
 
 ## 🚀 启动指南
 
-### 方式1：使用启动脚本（推荐）
+### 方式1：使用开发脚本（推荐）
 ```bash
-./start.sh
+# 启动全部服务
+./dev-start.sh
+
+# 分别启动服务
+./dev-start.sh backend    # 仅后端
+./dev-start.sh frontend   # 仅前端
+./dev-start.sh stop       # 停止所有服务
 ```
 
-### 方式2：分别启动
+### 方式2：手动启动
 ```bash
 # 启动后端 (终端1)
 cd backend
@@ -102,6 +108,9 @@ flutter run -d web-server --web-port=3000
 - 🌐 **前端**: http://localhost:3000
 - 📡 **后端**: http://localhost:8000
 - 📖 **API文档**: http://localhost:8000/api
+- 💚 **健康检查**: http://localhost:8000/health
+- 🤖 **翻译状态**: http://localhost:8000/api/v1/translate/status
+- 📋 **日志查看**: tail -f logs/backend.log 或 logs/frontend.log
 
 ## 🔍 测试账号
 由于使用模拟后端，任何邮箱和密码组合都可以登录/注册。
@@ -194,10 +203,32 @@ flutter run -d web-server --web-port=3000
 - [ ] 离线缓存
 - [ ] 性能监控
 
+## 📊 里程碑与下一步规划
+
+### 🎯 近期目标 (2-4周)
+- [ ] 📦 集成PostgreSQL数据库
+- [ ] 🔐 实现真实的JWT认证
+- [ ] 🤖 完善AI翻译服务（配置API密钥）
+- [ ] 📰 集成真实新闻数据源（BBC、ESPN等）
+- [ ] 📱 Android应用打包和优化
+
+### 🚀 中期目标 (1-2个月)
+- [ ] 🔄 WebSocket实时功能
+- [ ] 🧠 个性化推荐系统
+- [ ] 📊 数据分析和统计
+- [ ] 🌐 多语言支持
+- [ ] ☁️ 云服务部署
+
+### 📈 成功指标
+- **技术指标**: API响应 < 200ms，99.9%可用性
+- **用户指标**: DAU增长，留存率提升
+- **产品指标**: 应用商店评分 > 4.5
+
 ## 🐛 已知问题
 
 1. **测试问题**: Widget测试在某些环境下可能失败（不影响主要功能）
 2. **代理问题**: 如果系统设置了HTTP代理，可能需要配置绕过localhost
+3. **翻译服务**: 需要配置API密钥才能使用完整翻译功能
 
 ## 💡 开发经验总结
 
