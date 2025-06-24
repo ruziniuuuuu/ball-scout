@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>球探社 - DeepSeek AI翻译演示</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus, select:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .language-selector {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .language-selector select {
+            flex: 1;
+        }
+        
+        .arrow {
+            font-size: 1.5rem;
+            color: #1e3c72;
+        }
+        
+        .translate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin: 20px 0;
+        }
+        
+        .translate-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .translate-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        .result h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .translated-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #333;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1e3c72;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .stat {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c66;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .examples {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        .example {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .example:hover {
+            background: #e9ecef;
+        }
+        
+        .example-text {
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 球探社 AI翻译</h1>
+            <p>基于DeepSeek技术的专业足球新闻翻译服务</p>
+        </div>
+        
+        <form id="translateForm">
+            <div class="form-group">
+                <label for="sourceText">输入要翻译的文本：</label>
+                <textarea id="sourceText" placeholder="输入英文足球新闻或其他语言文本..." required></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>翻译语言：</label>
+                <div class="language-selector">
+                    <select id="sourceLanguage">
+                        <option value="en">英文</option>
+                        <option value="es">西班牙文</option>
+                        <option value="fr">法文</option>
+                        <option value="de">德文</option>
+                        <option value="it">意大利文</option>
+                        <option value="pt">葡萄牙文</option>
+                    </select>
+                    <span class="arrow">→</span>
+                    <select id="targetLanguage">
+                        <option value="zh-CN">简体中文</option>
+                        <option value="zh-TW">繁体中文</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="priority">优先级：</label>
+                <select id="priority">
+                    <option value="high">高 - 使用最佳模型</option>
+                    <option value="medium">中 - 平衡质量和速度</option>
+                    <option value="low">低 - 快速翻译</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="translate-btn" id="translateBtn">
+                🤖 开始翻译
+            </button>
+        </form>
+        
+        <div id="result" class="result">
+            <h3>翻译结果：</h3>
+            <div id="translatedText" class="translated-text"></div>
+            <div class="stats">
+                <div class="stat">
+                    <div id="confidence" class="stat-value">-</div>
+                    <div class="stat-label">置信度</div>
+                </div>
+                <div class="stat">
+                    <div id="quality" class="stat-value">-</div>
+                    <div class="stat-label">质量评分</div>
+                </div>
+                <div class="stat">
+                    <div id="time" class="stat-value">-</div>
+                    <div class="stat-label">处理时间</div>
+                </div>
+                <div class="stat">
+                    <div id="model" class="stat-value">-</div>
+                    <div class="stat-label">AI模型</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h3>💡 示例文本（点击使用）：</h3>
+            
+            <div class="example" onclick="fillExample(this)">
+                <strong>转会新闻：</strong>
+                <div class="example-text">"Real Madrid has completed the signing of Kylian Mbappé from Paris Saint-Germain for a record-breaking fee of €200 million."</div>
+            </div>
+            
+            <div class="example" onclick="fillExample(this)">
+                <strong>比赛报道：</strong>
+                <div class="example-text">"Manchester City defeated Chelsea 3-1 in a thrilling Premier League match at Etihad Stadium."</div>
+            </div>
+            
+            <div class="example" onclick="fillExample(this)">
+                <strong>伤病消息：</strong>
+                <div class="example-text">"Lionel Messi will miss the next three matches due to a hamstring injury sustained during training."</div>
+            </div>
+            
+            <div class="example" onclick="fillExample(this)">
+                <strong>技术分析：</strong>
+                <div class="example-text">"Barcelona's possession-based playing style dominated the match with 72% ball possession and 18 shots on target."</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('translateForm');
+        const result = document.getElementById('result');
+        const translateBtn = document.getElementById('translateBtn');
+        
+        // 示例文本填充
+        function fillExample(element) {
+            const exampleText = element.querySelector('.example-text').textContent.trim();
+            document.getElementById('sourceText').value = exampleText.replace(/^"|"$/g, '');
+        }
+        
+        // 表单提交处理
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const sourceText = document.getElementById('sourceText').value.trim();
+            const sourceLanguage = document.getElementById('sourceLanguage').value;
+            const targetLanguage = document.getElementById('targetLanguage').value;
+            const priority = document.getElementById('priority').value;
+            
+            if (!sourceText) {
+                alert('请输入要翻译的文本');
+                return;
+            }
+            
+            // 开始翻译
+            translateBtn.disabled = true;
+            translateBtn.textContent = '🤖 翻译中...';
+            result.classList.remove('show');
+            
+            try {
+                                 const response = await fetch('http://localhost:8001/api/v1/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: sourceText,
+                        sourceLanguage: sourceLanguage,
+                        targetLanguage: targetLanguage,
+                        domain: 'football',
+                        priority: priority
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API错误: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // 显示结果
+                document.getElementById('translatedText').textContent = data.translatedText;
+                document.getElementById('confidence').textContent = (data.confidence * 100).toFixed(1) + '%';
+                document.getElementById('quality').textContent = (data.qualityScore * 100).toFixed(1) + '%';
+                document.getElementById('time').textContent = data.processingTime + 'ms';
+                document.getElementById('model').textContent = data.model;
+                
+                result.classList.add('show');
+                
+            } catch (error) {
+                console.error('翻译错误:', error);
+                                 result.innerHTML = `<div class="error">翻译失败: ${error.message}<br><br>请确保：<br>1. 后端服务正在运行 (http://localhost:8001)<br>2. DeepSeek API密钥已正确配置<br>3. 网络连接正常</div>`;
+                result.classList.add('show');
+            } finally {
+                translateBtn.disabled = false;
+                translateBtn.textContent = '🤖 开始翻译';
+            }
+        });
+    </script>
+</body>
+</html> 

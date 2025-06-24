@@ -21,7 +21,7 @@
 - **前端**: Flutter (Dart) - 跨平台开发
 - **后端**: Deno + TypeScript - 现代化安全的运行时，内置TypeScript支持
 - **数据库**: PostgreSQL + Redis
-- **AI集成**: Claude、GPT-4、通义千问
+- **AI集成**: DeepSeek、Claude、GPT-4、通义千问
 - **部署**: Docker + Kubernetes
 
 ## 📁 项目结构

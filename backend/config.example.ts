@@ -32,15 +32,24 @@ export const config = {
   
   // 🤖 AI翻译服务配置
   translation: {
-    // Claude API (主力翻译)
+    // DeepSeek API (主力翻译)
+    deepseek: {
+      apiKey: Deno.env.get('DEEPSEEK_API_KEY'), // 从环境变量获取
+      model: 'deepseek-chat',
+      maxTokens: 4000,
+      temperature: 0.1,
+      baseUrl: 'https://api.deepseek.com/v1/chat/completions',
+    },
+    
+    // Claude API (备选翻译)
     claude: {
-      apiKey: Deno.env.get('CLAUDE_API_KEY'), // 从环境变量获取
+      apiKey: Deno.env.get('CLAUDE_API_KEY'),
       model: 'claude-3-5-sonnet-20241022',
       maxTokens: 4000,
       temperature: 0.1,
     },
     
-    // OpenAI API (备选翻译)
+    // OpenAI API (辅助翻译)
     openai: {
       apiKey: Deno.env.get('OPENAI_API_KEY'),
       model: 'gpt-4',
@@ -176,8 +185,10 @@ export function validateConfig() {
   }
   
   // 翻译服务警告
-  if (!Deno.env.get('CLAUDE_API_KEY') && !Deno.env.get('OPENAI_API_KEY')) {
+  if (!Deno.env.get('DEEPSEEK_API_KEY') && !Deno.env.get('CLAUDE_API_KEY') && !Deno.env.get('OPENAI_API_KEY')) {
     console.warn('⚠️ 未配置翻译API密钥，翻译功能将不可用');
+  } else if (Deno.env.get('DEEPSEEK_API_KEY')) {
+    console.log('✅ DeepSeek API已配置（主力翻译服务）');
   }
   
   console.log('✅ 配置验证通过');

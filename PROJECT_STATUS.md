@@ -78,6 +78,7 @@
 - **Runtime**: Deno 1.x
 - **Framework**: Oak
 - **Language**: TypeScript
+- **AI集成**: DeepSeek (主力) + Claude (备选) + OpenAI (辅助)
 - **CORS**: oakCors
 - **日志**: std/log
 
@@ -208,7 +209,7 @@ flutter run -d web-server --web-port=3000
 ### 🎯 近期目标 (2-4周)
 - [ ] 📦 集成PostgreSQL数据库
 - [ ] 🔐 实现真实的JWT认证
-- [ ] 🤖 完善AI翻译服务（配置API密钥）
+- [ ] 🤖 完善AI翻译服务（配置DeepSeek API密钥）
 - [ ] 📰 集成真实新闻数据源（BBC、ESPN等）
 - [ ] 📱 Android应用打包和优化
 

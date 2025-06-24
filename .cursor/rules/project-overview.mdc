@@ -22,14 +22,14 @@ alwaysApply: true
 - **前端**: Flutter (Dart) - 跨平台开发，优先适配Android
 - **后端**: Deno + TypeScript - 现代化安全的运行时，内置TypeScript支持
 - **数据库**: PostgreSQL + Redis缓存
-- **AI集成**: 多大模型API (翻译、内容分析)
+- **AI集成**: DeepSeek主力 + Claude备选 (翻译、内容分析)
 - **部署**: Docker + K8s
 
 ## 目标用户
 中国国内足球爱好者，追求高质量、无干扰的足球资讯体验
 
 ## 开发原则
-- 代码清晰可读，便于AI工具(Cursor/Claude)理解和调试
+- 代码清晰可读，便于AI工具(Cursor/DeepSeek)理解和调试
 - 模块化设计，功能解耦
 - 性能优先，用户体验至上
 - 数据准确性和实时性

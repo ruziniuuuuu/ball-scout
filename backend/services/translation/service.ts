@@ -1,11 +1,12 @@
 import { TranslationRequest, TranslationResult, TranslationProvider } from './types.ts';
+import { DeepSeekTranslationProvider } from './providers/deepseek.ts';
 import { ClaudeTranslationProvider } from './providers/claude.ts';
 import { OpenAITranslationProvider } from './providers/openai.ts';
 import { translationCache } from './cache.ts';
 
 export class TranslationService {
   private providers: Map<string, any> = new Map();
-  private fallbackChain: string[] = ['claude', 'openai'];
+  private fallbackChain: string[] = ['deepseek', 'claude', 'openai'];
   
   constructor() {
     this.initializeProviders();
@@ -13,9 +14,14 @@ export class TranslationService {
 
   private initializeProviders() {
     // 从环境变量获取API密钥
+    const deepseekKey = Deno.env.get('DEEPSEEK_API_KEY');
     const claudeKey = Deno.env.get('CLAUDE_API_KEY');
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
 
+    if (deepseekKey) {
+      this.providers.set('deepseek', new DeepSeekTranslationProvider(deepseekKey));
+    }
+    
     if (claudeKey) {
       this.providers.set('claude', new ClaudeTranslationProvider(claudeKey));
     }
@@ -90,12 +96,12 @@ export class TranslationService {
    * 选择最佳翻译提供商
    */
   private selectProvider(request: TranslationRequest): string | null {
-    // 高优先级任务优先使用Claude
-    if (request.priority === 'high' && this.providers.has('claude')) {
-      return 'claude';
+    // 高优先级任务优先使用DeepSeek（主力）
+    if (request.priority === 'high' && this.providers.has('deepseek')) {
+      return 'deepseek';
     }
 
-    // 一般任务按可用性选择
+    // 一般任务按可用性选择（DeepSeek优先）
     for (const provider of this.fallbackChain) {
       if (this.providers.has(provider)) {
         return provider;
