@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: ballscout-postgres
+    environment:
+      POSTGRES_DB: ball_scout
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ballscout123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/setup-database.sql:/docker-entrypoint-initdb.d/setup-database.sql
+    networks:
+      - ballscout-network
+    restart: unless-stopped
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: ballscout-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ballscout-network
+    restart: unless-stopped
+
+  # 球探社后端 API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ballscout-backend
+    environment:
+      - NODE_ENV=development
+      - PORT=8000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ball_scout
+      - DB_USER=postgres
+      - DB_PASSWORD=ballscout123
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=ballscout-jwt-secret-development-2024
+      - CORS_ORIGIN=http://localhost:3000
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - ballscout-network
+    restart: unless-stopped
+    command: deno run --allow-net --allow-read --allow-env --watch mod.ts
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ballscout-network:
+    driver: bridge 

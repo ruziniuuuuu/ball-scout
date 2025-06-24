@@ -1,73 +1,66 @@
-import { Application, Router, oakCors, load, log } from './deps.ts';
-import commentRouter from './services/community/router.ts';
-import translationRouter from './services/translation/router.ts';
+import { Application, Router } from 'https://deno.land/x/oak@v12.6.1/mod.ts';
+import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts';
+import { config, validateConfig } from './config.ts';
+import { DatabaseManager, RedisManager, initializeDatabase } from './shared/db.ts';
+
+// 引入各个服务路由
 import enhancedNewsRouter from './services/news/enhanced-router.ts';
+import { userRouter } from './services/user/router.ts';
+import communityRouter from './services/community/router.ts';
+import translationRouter from './services/translation/router.ts';
 
-// 加载环境变量
-try {
-  await load({ export: true });
-  console.log('✅ 环境变量加载成功');
-} catch (error) {
-  console.warn('⚠️ 环境变量文件不存在，使用默认配置');
-}
+// 验证配置
+validateConfig();
 
-// 应用配置
-const config = {
-  port: parseInt(Deno.env.get('PORT') || '8000'),
-  env: Deno.env.get('NODE_ENV') || 'development',
-};
-
-// 初始化日志
-await log.setup({
-  handlers: {
-    console: new log.handlers.ConsoleHandler('DEBUG'),
-  },
-  loggers: {
-    default: {
-      level: 'DEBUG',
-      handlers: ['console'],
-    },
-  },
-});
-
-const logger = log.getLogger();
-
-// 创建Oak应用
+// 创建应用实例
 const app = new Application();
+const router = new Router();
 
-// 全局错误处理
+// 初始化数据库连接
+const dbManager = new DatabaseManager(config.database);
+const redisManager = new RedisManager(config.redis);
+
+// 错误处理中间件
 app.use(async (ctx, next) => {
   try {
     await next();
   } catch (error) {
-    logger.error('请求处理错误:', error);
-    ctx.response.status = 500;
+    console.error('❌ 服务器错误:', error);
+    
+    ctx.response.status = error.statusCode || 500;
     ctx.response.body = {
       success: false,
       error: {
-        code: 'INTERNAL_SERVER_ERROR',
+        code: error.code || 'INTERNAL_ERROR',
         message: config.env === 'production' ? '服务器内部错误' : (error as Error).message,
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
       },
     };
   }
 });
 
-// CORS中间件
-app.use(oakCors({
-  origin: true,
-  credentials: true,
-}));
+// 数据库连接中间件
+app.use(async (ctx, next) => {
+  ctx.state.db = dbManager;
+  ctx.state.redis = redisManager;
+  await next();
+});
 
 // 请求日志中间件
 app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
-  const duration = Date.now() - start;
-  logger.info(`${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} - ${duration}ms`);
+  const ms = Date.now() - start;
+  console.log(`${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} (${ms}ms)`);
 });
 
-// 创建基础路由
-const router = new Router();
+// CORS中间件
+app.use(oakCors({
+  origin: config.cors.origin,
+  credentials: config.cors.credentials,
+}));
 
 // 健康检查
 router.get('/health', (ctx) => {
@@ -75,15 +68,72 @@ router.get('/health', (ctx) => {
     success: true,
     data: {
       status: 'healthy',
+      version: '1.5.0',
+      environment: config.env,
       timestamp: new Date().toISOString(),
-      version: '1.0.0',
-      message: '球探社后端服务运行正常 ⚽',
-      uptime: Math.floor(performance.now() / 1000),
+      services: {
+        database: 'connected',
+        redis: 'connected',
+      },
     },
   };
 });
 
-// 测试API - 获取模拟新闻数据
+// API文档
+router.get('/api', (ctx) => {
+  ctx.response.body = {
+    success: true,
+    data: {
+      title: '球探社 API v1.5',
+      description: '提供足球新闻、比赛数据、用户认证和社区功能的RESTful API',
+      version: '1.5.0',
+      endpoints: {
+        news: {
+          'GET /api/v1/news': '获取新闻列表',
+          'GET /api/v1/news/:id': '获取新闻详情',
+          'GET /api/v1/news/search': '搜索新闻',
+        },
+        matches: {
+          'GET /api/v1/matches': '获取比赛列表',
+          'GET /api/v1/matches/:id': '获取比赛详情',
+        },
+        auth: {
+          'POST /api/v1/auth/login': '用户登录',
+          'POST /api/v1/auth/register': '用户注册',
+          'GET /api/v1/auth/profile': '获取用户信息',
+        },
+        community: {
+          'GET /api/v1/comments': '获取评论列表',
+          'POST /api/v1/comments': '发表评论',
+          'PUT /api/v1/comments/:id/like': '点赞评论',
+        },
+        translation: {
+          'POST /api/v1/translate': 'AI翻译服务',
+          'GET /api/v1/translate/status': '翻译服务状态',
+        },
+      },
+    },
+  };
+});
+
+// 注册路由
+app.use(router.routes());
+app.use(router.allowedMethods());
+
+// 注册服务路由
+app.use(enhancedNewsRouter.routes());
+app.use(enhancedNewsRouter.allowedMethods());
+
+app.use(userRouter.routes());
+app.use(userRouter.allowedMethods());
+
+app.use(communityRouter.routes());
+app.use(communityRouter.allowedMethods());
+
+app.use(translationRouter.routes());
+app.use(translationRouter.allowedMethods());
+
+// 兼容旧的模拟API接口
 router.get('/api/v1/news', (ctx) => {
   const mockNews = [
     {
@@ -92,7 +142,7 @@ router.get('/api/v1/news', (ctx) => {
       summary: '皇马官方宣布签下年仅19岁的巴西新星前锋，转会费高达8000万欧元。这位年轻球员在上赛季表现出色，被誉为下一个巴西传奇。',
       source: 'ESPN',
       category: 'transfer',
-      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2小时前
+      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
       readCount: 1205,
       imageUrl: null,
       content: '皇马官方宣布签下年仅19岁的巴西新星前锋...',
@@ -103,7 +153,7 @@ router.get('/api/v1/news', (ctx) => {
       summary: '2024年欧冠八强抽签结果公布，精彩对决即将上演。曼城对阵巴萨，皇马遭遇拜仁，这些经典对决让球迷期待不已。',
       source: 'UEFA',
       category: 'match',
-      publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4小时前
+      publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
       readCount: 2350,
       imageUrl: null,
       content: '2024年欧冠八强抽签结果公布...',
@@ -114,7 +164,7 @@ router.get('/api/v1/news', (ctx) => {
       summary: '葡萄牙巨星C罗在昨晚的比赛中再次创造历史，成为首位在5届欧洲杯中都有进球的球员。这一纪录彰显了他的持久性和伟大性。',
       source: 'Goal.com',
       category: 'news',
-      publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6小时前
+      publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
       readCount: 5678,
       imageUrl: null,
       content: '葡萄牙巨星C罗在昨晚的比赛中再次创造历史...',
@@ -125,7 +175,7 @@ router.get('/api/v1/news', (ctx) => {
       summary: '尽管已经37岁，梅西在迈阿密国际的表现依然出色。专家分析认为，他的球技和视野没有丝毫衰退迹象。',
       source: '体坛周报',
       category: 'analysis',
-      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8小时前
+      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
       readCount: 3421,
       imageUrl: null,
       content: '尽管已经37岁，梅西在迈阿密国际的表现依然出色...',
@@ -136,7 +186,7 @@ router.get('/api/v1/news', (ctx) => {
       summary: '英超第30轮战罢，曼城继续领跑积分榜，阿森纳紧随其后。利物浦和切尔西之间的争夺也异常激烈。',
       source: 'BBC Sport',
       category: 'match',
-      publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12小时前
+      publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
       readCount: 1876,
       imageUrl: null,
       content: '英超第30轮战罢，曼城继续领跑积分榜...',
@@ -167,7 +217,7 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: 2,
       awayScore: 1,
-      matchTime: new Date(targetDate.getTime() + 2 * 60 * 60 * 1000).toISOString(), // 2小时后
+      matchTime: new Date(targetDate.getTime() + 2 * 60 * 60 * 1000).toISOString(),
       status: 'finished',
       competition: '西甲',
       venue: '伯纳乌球场',
@@ -207,7 +257,7 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: 1,
       awayScore: 1,
-      matchTime: new Date(targetDate.getTime() + 4 * 60 * 60 * 1000).toISOString(), // 4小时后
+      matchTime: new Date(targetDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
       status: 'live',
       competition: '英超',
       venue: '伊蒂哈德球场',
@@ -239,7 +289,7 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: null,
       awayScore: null,
-      matchTime: new Date(targetDate.getTime() + 6 * 60 * 60 * 1000).toISOString(), // 6小时后
+      matchTime: new Date(targetDate.getTime() + 6 * 60 * 60 * 1000).toISOString(),
       status: 'scheduled',
       competition: '德甲',
       venue: '安联球场',
@@ -254,7 +304,7 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: null,
       awayScore: null,
-      matchTime: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(), // 明天
+      matchTime: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(),
       status: 'scheduled',
       competition: '意甲',
       venue: '圣西罗球场',
@@ -374,7 +424,7 @@ router.post('/api/v1/auth/login', async (ctx) => {
   // 简单的模拟登录验证
   if (body.email && body.password) {
     // 模拟验证过程
-    await new Promise(resolve => setTimeout(resolve, 500)); // 模拟网络延迟
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     ctx.response.status = 200;
     ctx.response.body = {
@@ -414,7 +464,7 @@ router.post('/api/v1/auth/register', async (ctx) => {
   // 简单的模拟注册验证
   if (body.username && body.email && body.password) {
     // 模拟注册过程
-    await new Promise(resolve => setTimeout(resolve, 800)); // 模拟网络延迟
+    await new Promise(resolve => setTimeout(resolve, 800));
     
     ctx.response.status = 201;
     ctx.response.body = {
@@ -447,120 +497,59 @@ router.post('/api/v1/auth/register', async (ctx) => {
   }
 });
 
-// 获取用户信息API
-router.get('/api/v1/user/profile', (ctx) => {
-  // 检查Authorization header
-  const authHeader = ctx.request.headers.get('Authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    ctx.response.status = 401;
-    ctx.response.body = {
-      success: false,
-      error: {
-        code: 'UNAUTHORIZED',
-        message: '请先登录',
-      },
-    };
-    return;
-  }
-
-  ctx.response.body = {
-    success: true,
-    data: {
-      id: crypto.randomUUID(),
-      username: '测试用户',
-      email: 'test@example.com',
-      avatar: null,
-      nickname: '足球爱好者',
-      level: 3,
-      createdAt: new Date().toISOString(),
-    },
-  };
-});
-
-// API文档
-router.get('/api', (ctx) => {
-  ctx.response.body = {
-    message: '🏆 球探社 API 文档',
-    version: '1.0.0',
-    endpoints: {
-      'GET /health': '健康检查',
-      'GET /api/v1/news': '获取新闻列表',
-      'GET /api/v1/news/:id': '获取新闻详情',
-      'POST /api/v1/auth/login': '用户登录',
-      'POST /api/v1/auth/register': '用户注册',
-      'GET /api/v1/user/profile': '获取用户信息',
-    },
-    examples: {
-      news: 'curl http://localhost:8000/api/v1/news',
-      login: 'curl -X POST http://localhost:8000/api/v1/auth/login -H "Content-Type: application/json" -d \'{"email":"test@example.com","password":"123456"}\'',
-      register: 'curl -X POST http://localhost:8000/api/v1/auth/register -H "Content-Type: application/json" -d \'{"username":"test","email":"test@example.com","password":"123456"}\'',
-    },
-  };
-});
-
-// 注册路由
-app.use(router.routes());
-app.use(router.allowedMethods());
-
-// 注册评论路由
-app.use(commentRouter.routes());
-app.use(commentRouter.allowedMethods());
-
-// 注册翻译路由
-app.use(translationRouter.routes());
-app.use(translationRouter.allowedMethods());
-
-// 注册增强新闻路由
-app.use(enhancedNewsRouter.routes());
-app.use(enhancedNewsRouter.allowedMethods());
-
-// 404处理
-app.use((ctx) => {
-  ctx.response.status = 404;
-  ctx.response.body = {
-    success: false,
-    error: {
-      code: 'NOT_FOUND',
-      message: '请求的资源不存在',
-    },
-  };
-});
-
-// 启动应用
+// 启动服务器
 async function startServer() {
   try {
-    logger.info(`🚀 正在启动球探社后端服务...`);
-    logger.info(`🛠️ 运行环境: ${config.env}`);
+    // 连接数据库
+    console.log('🔌 正在连接数据库...');
+    await dbManager.connect();
     
-    // 启动服务器
-    logger.info(`✅ 球探社后端服务启动成功`);
-    logger.info(`🌐 服务地址: http://localhost:${config.port}`);
-    logger.info(`📖 API文档: http://localhost:${config.port}/api`);
-    logger.info(`💚 健康检查: http://localhost:${config.port}/health`);
+    // 初始化数据库表结构
+    console.log('🚀 正在初始化数据库...');
+    await initializeDatabase(dbManager);
+    
+    // 连接Redis（可选）
+    try {
+      console.log('🔌 正在连接Redis...');
+      await redisManager.connect();
+    } catch (error) {
+      console.warn('⚠️  Redis连接失败，继续使用内存缓存:', error.message);
+    }
+    
+    // 启动HTTP服务器
+    console.log('🚀 启动球探社后端服务...');
+    console.log(`🛠️  运行环境: ${config.env}`);
+    console.log(`🌐 服务地址: http://localhost:${config.port}`);
+    console.log(`📡 API文档: http://localhost:${config.port}/api`);
+    console.log(`💚 健康检查: http://localhost:${config.port}/health`);
     
     await app.listen({ port: config.port });
   } catch (error) {
-    logger.error('服务启动失败:', error);
+    console.error('❌ 服务启动失败:', error);
     Deno.exit(1);
   }
 }
 
-// 优雅关闭处理
-function setupGracefulShutdown() {
-  const shutdown = async () => {
-    logger.info('🛑 收到停止信号，正在关闭服务...');
-    // 给服务一点时间处理正在进行的请求
-    await new Promise(resolve => setTimeout(resolve, 100));
-    logger.info('✅ 球探社后端服务已关闭');
-    Deno.exit(0);
-  };
-
-  // 监听终止信号
-  Deno.addSignalListener('SIGINT', shutdown);
-  Deno.addSignalListener('SIGTERM', shutdown);
+// 优雅关闭
+async function gracefulShutdown() {
+  console.log('\n📴 正在关闭服务...');
+  
+  try {
+    await dbManager.disconnect();
+    await redisManager.disconnect();
+    console.log('✅ 服务已安全关闭');
+  } catch (error) {
+    console.error('❌ 关闭服务时出错:', error);
+  }
+  
+  Deno.exit(0);
 }
 
+// 监听关闭信号
+Deno.addSignalListener('SIGTERM', gracefulShutdown);
+Deno.addSignalListener('SIGINT', gracefulShutdown);
+
 // 启动服务
-setupGracefulShutdown();
-await startServer(); 
+if (import.meta.main) {
+  await startServer();
+} 
