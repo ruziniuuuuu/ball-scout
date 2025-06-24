@@ -13,6 +13,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       avatar: json['avatar'] as String?,
       nickname: json['nickname'] as String?,
       level: (json['level'] as num?)?.toInt(),
+      isVerified: json['isVerified'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
@@ -23,6 +24,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
       'avatar': instance.avatar,
       'nickname': instance.nickname,
       'level': instance.level,
+      'isVerified': instance.isVerified,
       'createdAt': instance.createdAt.toIso8601String(),
     };
 

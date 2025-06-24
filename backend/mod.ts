@@ -1,5 +1,6 @@
 import { Application, Router, oakCors, load, log } from './deps.ts';
 import commentRouter from './services/community/router.ts';
+import translationRouter from './services/translation/router.ts';
 
 // 加载环境变量
 await load({ export: true });
@@ -39,7 +40,7 @@ app.use(async (ctx, next) => {
       success: false,
       error: {
         code: 'INTERNAL_SERVER_ERROR',
-        message: config.env === 'production' ? '服务器内部错误' : error.message,
+        message: config.env === 'production' ? '服务器内部错误' : (error as Error).message,
       },
     };
   }
@@ -499,6 +500,10 @@ app.use(router.allowedMethods());
 app.use(commentRouter.routes());
 app.use(commentRouter.allowedMethods());
 
+// 注册翻译路由
+app.use(translationRouter.routes());
+app.use(translationRouter.allowedMethods());
+
 // 404处理
 app.use((ctx) => {
   ctx.response.status = 404;
@@ -514,11 +519,14 @@ app.use((ctx) => {
 // 启动应用
 async function startServer() {
   try {
-    logger.info(`🚀 球探社后端服务启动成功`);
+    logger.info(`🚀 正在启动球探社后端服务...`);
+    logger.info(`🛠️ 运行环境: ${config.env}`);
+    
+    // 启动服务器
+    logger.info(`✅ 球探社后端服务启动成功`);
     logger.info(`🌐 服务地址: http://localhost:${config.port}`);
     logger.info(`📖 API文档: http://localhost:${config.port}/api`);
     logger.info(`💚 健康检查: http://localhost:${config.port}/health`);
-    logger.info(`🛠️ 运行环境: ${config.env}`);
     
     await app.listen({ port: config.port });
   } catch (error) {
@@ -530,8 +538,10 @@ async function startServer() {
 // 优雅关闭处理
 function setupGracefulShutdown() {
   const shutdown = async () => {
-    logger.info('正在关闭服务...');
-    logger.info('服务已关闭');
+    logger.info('🛑 收到停止信号，正在关闭服务...');
+    // 给服务一点时间处理正在进行的请求
+    await new Promise(resolve => setTimeout(resolve, 100));
+    logger.info('✅ 球探社后端服务已关闭');
     Deno.exit(0);
   };
 

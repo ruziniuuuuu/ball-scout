@@ -1,6 +1,6 @@
 import { Router } from '../../deps.ts';
 import { ApiResponse, User, ServiceError } from '../../shared/types.ts';
-import { z, hash, verifyPassword, create, verify, getNumericDate } from '../../deps.ts';
+import { z, hashPassword, verifyPassword, create, verify, getNumericDate } from '../../deps.ts';
 
 export const userRouter = new Router();
 
@@ -45,7 +45,7 @@ userRouter.post('/api/v1/auth/register', async (ctx) => {
     }
     
     // 加密密码
-    const passwordHash = await hash(password);
+    const passwordHash = await hashPassword(password);
     
     // 插入新用户
     const result = await db.query(

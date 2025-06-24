@@ -1,38 +1,184 @@
 // 环境变量配置示例
-// 复制此文件为 .env 并填入实际值
+// 复制此文件为 config.ts 并填入实际值
 
-export const exampleConfig = {
-  // 应用配置
-  PORT: '8000',
-  NODE_ENV: 'development',
-
+export const config = {
+  // 服务端口
+  port: parseInt(Deno.env.get('PORT') || '8000'),
+  
+  // 运行环境
+  env: Deno.env.get('NODE_ENV') || 'development',
+  
   // 数据库配置
-  DB_HOST: 'localhost',
-  DB_PORT: '5432',
-  DB_NAME: 'ball_scout',
-  DB_USER: 'postgres',
-  DB_PASSWORD: 'password',
-
+  database: {
+    host: Deno.env.get('DB_HOST') || 'localhost',
+    port: parseInt(Deno.env.get('DB_PORT') || '5432'),
+    database: Deno.env.get('DB_NAME') || 'ball_scout',
+    username: Deno.env.get('DB_USER') || 'postgres',
+    password: Deno.env.get('DB_PASSWORD') || 'password',
+  },
+  
   // Redis配置
-  REDIS_HOST: 'localhost',
-  REDIS_PORT: '6379',
-  REDIS_PASSWORD: '',
-
+  redis: {
+    host: Deno.env.get('REDIS_HOST') || 'localhost',
+    port: parseInt(Deno.env.get('REDIS_PORT') || '6379'),
+    password: Deno.env.get('REDIS_PASSWORD'),
+  },
+  
   // JWT配置
-  JWT_SECRET: 'your-super-secret-jwt-key-change-this-in-production',
-  JWT_EXPIRES_IN: '7d',
-
-  // AI API配置
-  OPENAI_API_KEY: 'your-openai-api-key',
-  CLAUDE_API_KEY: 'your-claude-api-key',
-  TONGYI_API_KEY: 'your-tongyi-api-key',
-
-  // 外部API配置
-  SPORTRADAR_API_KEY: 'your-sportradar-api-key',
-  ESPN_API_KEY: 'your-espn-api-key',
-  TWITTER_API_KEY: 'your-twitter-api-key',
-  TWITTER_API_SECRET: 'your-twitter-api-secret',
-
+  jwt: {
+    secret: Deno.env.get('JWT_SECRET') || 'your-secret-key',
+    expiresIn: '7d',
+  },
+  
+  // 🤖 AI翻译服务配置
+  translation: {
+    // Claude API (主力翻译)
+    claude: {
+      apiKey: Deno.env.get('CLAUDE_API_KEY'), // 从环境变量获取
+      model: 'claude-3-5-sonnet-20241022',
+      maxTokens: 4000,
+      temperature: 0.1,
+    },
+    
+    // OpenAI API (备选翻译)
+    openai: {
+      apiKey: Deno.env.get('OPENAI_API_KEY'),
+      model: 'gpt-4',
+      maxTokens: 3000,
+      temperature: 0.1,
+    },
+    
+    // 通义千问 (本地化支持)
+    qwen: {
+      apiKey: Deno.env.get('QWEN_API_KEY'),
+      model: 'qwen-plus',
+      endpoint: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+    },
+    
+    // 缓存配置
+    cache: {
+      ttl: 24 * 60 * 60 * 1000, // 24小时
+      maxSize: 10000, // 最大缓存条目数
+    },
+  },
+  
+  // 新闻聚合配置
+  news: {
+    sources: {
+      bbc: {
+        apiKey: Deno.env.get('BBC_API_KEY'),
+        endpoint: 'https://api.bbc.co.uk/sport',
+      },
+      espn: {
+        apiKey: Deno.env.get('ESPN_API_KEY'),
+        endpoint: 'https://api.espn.com/v1/sports/soccer',
+      },
+      goal: {
+        apiKey: Deno.env.get('GOAL_API_KEY'),
+        endpoint: 'https://api.goal.com',
+      },
+    },
+    
+    // 爬虫配置
+    crawler: {
+      userAgent: 'BallScout/1.0 (+https://ballscout.com/bot)',
+      timeout: 10000,
+      retries: 3,
+      rateLimit: 100, // 每分钟请求数
+    },
+  },
+  
+  // 体育数据API
+  sports: {
+    sofascore: {
+      apiKey: Deno.env.get('SOFASCORE_API_KEY'),
+      endpoint: 'https://api.sofascore.com/api/v1',
+    },
+    
+    sportradar: {
+      apiKey: Deno.env.get('SPORTRADAR_API_KEY'),
+      endpoint: 'https://api.sportradar.us/soccer',
+    },
+  },
+  
+  // 推送通知
+  push: {
+    firebase: {
+      serverKey: Deno.env.get('FIREBASE_SERVER_KEY'),
+      projectId: Deno.env.get('FIREBASE_PROJECT_ID'),
+    },
+    
+    apns: {
+      keyId: Deno.env.get('APNS_KEY_ID'),
+      teamId: Deno.env.get('APNS_TEAM_ID'),
+      bundleId: 'com.ballscout.app',
+    },
+  },
+  
+  // 文件存储
+  storage: {
+    type: Deno.env.get('STORAGE_TYPE') || 'local', // local | s3 | aliyun
+    
+    local: {
+      uploadPath: './uploads',
+      publicPath: '/uploads',
+    },
+    
+    s3: {
+      accessKey: Deno.env.get('AWS_ACCESS_KEY_ID'),
+      secretKey: Deno.env.get('AWS_SECRET_ACCESS_KEY'),
+      region: Deno.env.get('AWS_REGION') || 'us-east-1',
+      bucket: Deno.env.get('S3_BUCKET'),
+    },
+  },
+  
   // 日志配置
-  LOG_LEVEL: 'DEBUG',
-}; 
+  logging: {
+    level: Deno.env.get('LOG_LEVEL') || 'INFO',
+    format: 'json',
+    outputs: ['console', 'file'],
+  },
+  
+  // CORS配置
+  cors: {
+    origin: Deno.env.get('CORS_ORIGIN') || 'http://localhost:3000',
+    credentials: true,
+  },
+  
+  // 监控配置
+  monitoring: {
+    sentry: {
+      dsn: Deno.env.get('SENTRY_DSN'),
+    },
+    
+    prometheus: {
+      enabled: Deno.env.get('PROMETHEUS_ENABLED') === 'true',
+      port: parseInt(Deno.env.get('PROMETHEUS_PORT') || '9090'),
+    },
+  },
+};
+
+// 配置验证
+export function validateConfig() {
+  const requiredEnvVars = [
+    'DB_PASSWORD',
+    'JWT_SECRET',
+  ];
+  
+  const missingVars = requiredEnvVars.filter(
+    varName => !Deno.env.get(varName)
+  );
+  
+  if (missingVars.length > 0) {
+    console.error('❌ 缺少必需的环境变量:', missingVars.join(', '));
+    console.error('💡 请检查 .env 文件或环境变量设置');
+    Deno.exit(1);
+  }
+  
+  // 翻译服务警告
+  if (!Deno.env.get('CLAUDE_API_KEY') && !Deno.env.get('OPENAI_API_KEY')) {
+    console.warn('⚠️ 未配置翻译API密钥，翻译功能将不可用');
+  }
+  
+  console.log('✅ 配置验证通过');
+} 

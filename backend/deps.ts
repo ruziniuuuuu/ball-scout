@@ -15,7 +15,7 @@ export { create, verify, getNumericDate } from "https://deno.land/x/djwt@v3.0.1/
 export type { Header, Payload } from "https://deno.land/x/djwt@v3.0.1/mod.ts";
 
 // 简单的密码哈希函数（开发阶段使用）
-export async function hash(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password + 'salt');
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -23,9 +23,9 @@ export async function hash(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hash(password);
-  return passwordHash === hash;
+export async function verifyPassword(password: string, hashValue: string): Promise<boolean> {
+  const passwordHash = await hashPassword(password);
+  return passwordHash === hashValue;
 }
 
 // 数据验证
