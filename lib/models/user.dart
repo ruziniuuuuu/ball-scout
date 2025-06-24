@@ -10,8 +10,8 @@ class User {
   final String? avatar;
   final String? nickname;
   final int? level;
+  final bool isVerified;
   final DateTime createdAt;
-
   const User({
     required this.id,
     required this.username,
@@ -19,6 +19,7 @@ class User {
     this.avatar,
     this.nickname,
     this.level,
+    this.isVerified = false,
     required this.createdAt,
   });
 
@@ -32,6 +33,7 @@ class User {
     String? avatar,
     String? nickname,
     int? level,
+    bool? isVerified,
     DateTime? createdAt,
   }) {
     return User(
@@ -41,6 +43,7 @@ class User {
       avatar: avatar ?? this.avatar,
       nickname: nickname ?? this.nickname,
       level: level ?? this.level,
+      isVerified: isVerified ?? this.isVerified,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -58,7 +61,8 @@ class AuthResponse {
     required this.data,
   });
 
-  factory AuthResponse.fromJson(Map<String, dynamic> json) => _$AuthResponseFromJson(json);
+  factory AuthResponse.fromJson(Map<String, dynamic> json) =>
+      _$AuthResponseFromJson(json);
   Map<String, dynamic> toJson() => _$AuthResponseToJson(this);
 }
 
@@ -72,7 +76,8 @@ class AuthData {
     required this.token,
   });
 
-  factory AuthData.fromJson(Map<String, dynamic> json) => _$AuthDataFromJson(json);
+  factory AuthData.fromJson(Map<String, dynamic> json) =>
+      _$AuthDataFromJson(json);
   Map<String, dynamic> toJson() => _$AuthDataToJson(this);
 }
 
@@ -86,7 +91,8 @@ class LoginRequest {
     required this.password,
   });
 
-  factory LoginRequest.fromJson(Map<String, dynamic> json) => _$LoginRequestFromJson(json);
+  factory LoginRequest.fromJson(Map<String, dynamic> json) =>
+      _$LoginRequestFromJson(json);
   Map<String, dynamic> toJson() => _$LoginRequestToJson(this);
 }
 
@@ -102,6 +108,7 @@ class RegisterRequest {
     required this.password,
   });
 
-  factory RegisterRequest.fromJson(Map<String, dynamic> json) => _$RegisterRequestFromJson(json);
+  factory RegisterRequest.fromJson(Map<String, dynamic> json) =>
+      _$RegisterRequestFromJson(json);
   Map<String, dynamic> toJson() => _$RegisterRequestToJson(this);
-} 
+}

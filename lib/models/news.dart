@@ -84,6 +84,27 @@ class News {
         return '#7F8C8D'; // 灰色
     }
   }
+
+  // 获取相对时间显示文字
+  String get timeAgoText {
+    try {
+      final publishTime = DateTime.parse(publishedAt);
+      final now = DateTime.now();
+      final difference = now.difference(publishTime);
+
+      if (difference.inDays > 0) {
+        return '${difference.inDays}天前';
+      } else if (difference.inHours > 0) {
+        return '${difference.inHours}小时前';
+      } else if (difference.inMinutes > 0) {
+        return '${difference.inMinutes}分钟前';
+      } else {
+        return '刚刚';
+      }
+    } catch (e) {
+      return '未知时间';
+    }
+  }
 }
 
 @JsonSerializable()
@@ -98,7 +119,8 @@ class NewsResponse {
     required this.meta,
   });
 
-  factory NewsResponse.fromJson(Map<String, dynamic> json) => _$NewsResponseFromJson(json);
+  factory NewsResponse.fromJson(Map<String, dynamic> json) =>
+      _$NewsResponseFromJson(json);
   Map<String, dynamic> toJson() => _$NewsResponseToJson(this);
 }
 
@@ -112,6 +134,7 @@ class NewsMetadata {
     required this.timestamp,
   });
 
-  factory NewsMetadata.fromJson(Map<String, dynamic> json) => _$NewsMetadataFromJson(json);
+  factory NewsMetadata.fromJson(Map<String, dynamic> json) =>
+      _$NewsMetadataFromJson(json);
   Map<String, dynamic> toJson() => _$NewsMetadataToJson(this);
-} 
+}

@@ -5,7 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/news/news_screen.dart';
-
+import 'screens/news/news_detail_with_comments_screen.dart';
 import 'screens/news/news_search_screen.dart';
 import 'screens/news/favorites_screen.dart';
 import 'screens/profile/profile_screen.dart';
@@ -20,10 +20,10 @@ import 'widgets/main_navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // 初始化Hive
   await Hive.initFlutter();
-  
+
   runApp(
     const ProviderScope(
       child: BallScoutApp(),
@@ -38,7 +38,7 @@ class BallScoutApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final fontSize = ref.watch(fontSizeProvider);
-    
+
     final router = GoRouter(
       routes: [
         ShellRoute(
@@ -73,7 +73,7 @@ class BallScoutApp extends ConsumerWidget {
               path: '/news/:id',
               builder: (context, state) {
                 final id = state.pathParameters['id']!;
-                return NewsDetailScreen(newsId: id);
+                return NewsDetailWithCommentsScreen(newsId: id);
               },
             ),
             GoRoute(
@@ -205,4 +205,4 @@ class NewsDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return NewsDetailScreen(newsId: newsId);
   }
-} 
+}

@@ -1,4 +1,5 @@
 import { Application, Router, oakCors, load, log } from './deps.ts';
+import commentRouter from './services/community/router.ts';
 
 // 加载环境变量
 await load({ export: true });
@@ -493,6 +494,10 @@ router.get('/api', (ctx) => {
 // 注册路由
 app.use(router.routes());
 app.use(router.allowedMethods());
+
+// 注册评论路由
+app.use(commentRouter.routes());
+app.use(commentRouter.allowedMethods());
 
 // 404处理
 app.use((ctx) => {
