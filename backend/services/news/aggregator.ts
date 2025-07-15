@@ -3,6 +3,8 @@
  * 集成多个真实新闻源，提供统一的新闻数据接口
  */
 
+import { parseXml, DOMParser, fetchWithTimeout } from '../../deps.ts';
+
 export interface NewsSource {
   id: string;
   name: string;
@@ -199,26 +201,30 @@ export class NewsAggregator {
    */
   private async fetchFromBBCRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
-      const response = await fetch(source.baseUrl);
-      const xmlText = await response.text();
+      console.log(`📡 正在获取BBC Sport RSS: ${source.baseUrl}`);
+      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
       
-      // 简单的RSS解析（实际项目中应使用专门的XML解析库）
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
       
       return items.map(item => ({
-        title: item.title,
-        description: item.description,
-        content: item.description, // RSS通常只有摘要
+        title: this.cleanText(item.title),
+        description: this.cleanText(item.description),
+        content: this.cleanText(item.description),
         url: item.link,
         publishedAt: item.pubDate,
         author: 'BBC Sport',
-        imageUrl: item.image,
+        imageUrl: item.enclosure?.url || item.image,
         category: this.categorizeNews(item.title, item.description),
-        language: 'en',
+        language: 'en' as const,
         sourceId: source.id,
       }));
     } catch (error) {
-      console.error('BBC RSS解析失败:', error);
+      console.error(`❌ BBC RSS解析失败:`, error);
       return [];
     }
   }
@@ -227,67 +233,290 @@ export class NewsAggregator {
    * 从ESPN RSS获取新闻
    */
   private async fetchFromESPNRSS(source: NewsSource): Promise<RawNewsItem[]> {
-    // 类似BBC的实现
-    return [];
+    try {
+      console.log(`📡 正在获取ESPN Soccer RSS: ${source.baseUrl}`);
+      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const xmlText = await response.text();
+      const items = this.parseRSSItems(xmlText);
+      
+      return items.map(item => ({
+        title: this.cleanText(item.title),
+        description: this.cleanText(item.description),
+        content: this.cleanText(item.description),
+        url: item.link,
+        publishedAt: item.pubDate,
+        author: 'ESPN Soccer',
+        imageUrl: item.enclosure?.url || item.image,
+        category: this.categorizeNews(item.title, item.description),
+        language: 'en' as const,
+        sourceId: source.id,
+      }));
+    } catch (error) {
+      console.error(`❌ ESPN RSS解析失败:`, error);
+      return [];
+    }
   }
 
   /**
    * 从Goal.com RSS获取新闻
    */
   private async fetchFromGoalRSS(source: NewsSource): Promise<RawNewsItem[]> {
-    // 类似实现
-    return [];
+    try {
+      console.log(`📡 正在获取Goal.com RSS: ${source.baseUrl}`);
+      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const xmlText = await response.text();
+      const items = this.parseRSSItems(xmlText);
+      
+      return items.map(item => ({
+        title: this.cleanText(item.title),
+        description: this.cleanText(item.description),
+        content: this.cleanText(item.description),
+        url: item.link,
+        publishedAt: item.pubDate,
+        author: 'Goal.com',
+        imageUrl: item.enclosure?.url || item.image,
+        category: this.categorizeNews(item.title, item.description),
+        language: 'en' as const,
+        sourceId: source.id,
+      }));
+    } catch (error) {
+      console.error(`❌ Goal.com RSS解析失败:`, error);
+      return [];
+    }
   }
 
   /**
    * 从Sky Sports RSS获取新闻
    */
   private async fetchFromSkyRSS(source: NewsSource): Promise<RawNewsItem[]> {
-    // 类似实现
-    return [];
+    try {
+      console.log(`📡 正在获取Sky Sports RSS: ${source.baseUrl}`);
+      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const xmlText = await response.text();
+      const items = this.parseRSSItems(xmlText);
+      
+      return items.map(item => ({
+        title: this.cleanText(item.title),
+        description: this.cleanText(item.description),
+        content: this.cleanText(item.description),
+        url: item.link,
+        publishedAt: item.pubDate,
+        author: 'Sky Sports',
+        imageUrl: item.enclosure?.url || item.image,
+        category: this.categorizeNews(item.title, item.description),
+        language: 'en' as const,
+        sourceId: source.id,
+      }));
+    } catch (error) {
+      console.error(`❌ Sky Sports RSS解析失败:`, error);
+      return [];
+    }
   }
 
   /**
-   * 从Marca RSS获取新闻
+   * 从Marca RSS获取新闻（西班牙语）
    */
   private async fetchFromMarcaRSS(source: NewsSource): Promise<RawNewsItem[]> {
-    // 类似实现，西班牙语内容
-    return [];
+    try {
+      console.log(`📡 正在获取Marca RSS: ${source.baseUrl}`);
+      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const xmlText = await response.text();
+      const items = this.parseRSSItems(xmlText);
+      
+      return items.map(item => ({
+        title: this.cleanText(item.title),
+        description: this.cleanText(item.description),
+        content: this.cleanText(item.description),
+        url: item.link,
+        publishedAt: item.pubDate,
+        author: 'Marca',
+        imageUrl: item.enclosure?.url || item.image,
+        category: this.categorizeNews(item.title, item.description),
+        language: 'es' as const, // 西班牙语
+        sourceId: source.id,
+      }));
+    } catch (error) {
+      console.error(`❌ Marca RSS解析失败:`, error);
+      return [];
+    }
   }
 
   /**
-   * 简单的RSS解析
+   * 专业的RSS解析功能
    */
   private parseRSSItems(xmlText: string): any[] {
-    const items: any[] = [];
-    
-    // 这里应该使用专门的XML解析库，比如 fast-xml-parser
-    // 为了演示，我们使用简单的正则表达式
-    const itemRegex = /<item>(.*?)<\/item>/gs;
-    const matches = xmlText.matchAll(itemRegex);
-    
-    for (const match of matches) {
-      const itemXml = match[1];
-      const item = {
-        title: this.extractTagContent(itemXml, 'title'),
-        description: this.extractTagContent(itemXml, 'description'),
-        link: this.extractTagContent(itemXml, 'link'),
-        pubDate: this.extractTagContent(itemXml, 'pubDate'),
-        image: this.extractTagContent(itemXml, 'enclosure') || this.extractTagContent(itemXml, 'media:thumbnail'),
-      };
-      items.push(item);
+    try {
+      const doc = parseXml(xmlText);
+      const items: any[] = [];
+      
+      // 解析RSS 2.0格式
+      const rssItems = doc.rss?.channel?.item || [];
+      const feedItems = doc.feed?.entry || []; // Atom格式支持
+      
+      const allItems = Array.isArray(rssItems) ? rssItems : [rssItems];
+      
+      for (const item of allItems.filter(Boolean)) {
+        const parsedItem = {
+          title: this.extractTextContent(item.title),
+          description: this.extractTextContent(item.description) || this.extractTextContent(item.summary),
+          link: this.extractTextContent(item.link) || item.link?.['@href'],
+          pubDate: this.extractTextContent(item.pubDate) || this.extractTextContent(item.published),
+          author: this.extractTextContent(item.author) || this.extractTextContent(item['dc:creator']),
+          guid: this.extractTextContent(item.guid),
+          category: this.extractTextContent(item.category),
+          enclosure: item.enclosure ? {
+            url: item.enclosure['@url'],
+            type: item.enclosure['@type'],
+            length: item.enclosure['@length']
+          } : null,
+          image: this.extractImageUrl(item),
+        };
+        
+        if (parsedItem.title && parsedItem.link) {
+          items.push(parsedItem);
+        }
+      }
+      
+      console.log(`✅ 成功解析 ${items.length} 条RSS项目`);
+      return items;
+    } catch (error) {
+      console.error('❌ XML解析失败，尝试DOM解析:', error);
+      return this.fallbackParseRSS(xmlText);
     }
-    
-    return items;
   }
 
   /**
-   * 提取XML标签内容
+   * 提取文本内容，处理CDATA等情况
    */
-  private extractTagContent(xml: string, tagName: string): string {
-    const regex = new RegExp(`<${tagName}[^>]*>(.*?)<\/${tagName}>`, 's');
-    const match = xml.match(regex);
-    return match ? match[1].trim() : '';
+  private extractTextContent(element: any): string {
+    if (!element) return '';
+    
+    if (typeof element === 'string') {
+      return this.cleanText(element);
+    }
+    
+    if (element['#text']) {
+      return this.cleanText(element['#text']);
+    }
+    
+    if (element['$']) {
+      return this.cleanText(element['$']);
+    }
+    
+    return '';
+  }
+
+  /**
+   * 提取图片URL
+   */
+  private extractImageUrl(item: any): string | null {
+    // 尝试多种可能的图片字段
+    if (item.enclosure?.['@url'] && item.enclosure?.['@type']?.includes('image')) {
+      return item.enclosure['@url'];
+    }
+    
+    if (item['media:thumbnail']?.['@url']) {
+      return item['media:thumbnail']['@url'];
+    }
+    
+    if (item['media:content']?.['@url']) {
+      return item['media:content']['@url'];
+    }
+    
+    // 从描述中提取图片
+    const description = this.extractTextContent(item.description);
+    const imgMatch = description.match(/<img[^>]+src="([^"]+)"/i);
+    if (imgMatch) {
+      return imgMatch[1];
+    }
+    
+    return null;
+  }
+
+  /**
+   * 备用RSS解析（使用DOM解析）
+   */
+  private fallbackParseRSS(xmlText: string): any[] {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xmlText, 'text/xml');
+      const items: any[] = [];
+      
+      const itemElements = doc.querySelectorAll('item');
+      
+      for (const item of itemElements) {
+        const parsedItem = {
+          title: item.querySelector('title')?.textContent?.trim() || '',
+          description: item.querySelector('description')?.textContent?.trim() || '',
+          link: item.querySelector('link')?.textContent?.trim() || '',
+          pubDate: item.querySelector('pubDate')?.textContent?.trim() || '',
+          author: item.querySelector('author')?.textContent?.trim() || '',
+          guid: item.querySelector('guid')?.textContent?.trim() || '',
+          category: item.querySelector('category')?.textContent?.trim() || '',
+          enclosure: null,
+          image: null,
+        };
+        
+        // 处理enclosure
+        const enclosureEl = item.querySelector('enclosure');
+        if (enclosureEl) {
+          parsedItem.enclosure = {
+            url: enclosureEl.getAttribute('url'),
+            type: enclosureEl.getAttribute('type'),
+            length: enclosureEl.getAttribute('length')
+          };
+        }
+        
+        if (parsedItem.title && parsedItem.link) {
+          items.push(parsedItem);
+        }
+      }
+      
+      console.log(`✅ DOM备用解析成功解析 ${items.length} 条RSS项目`);
+      return items;
+    } catch (error) {
+      console.error('❌ DOM备用解析也失败:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 清理文本内容
+   */
+  private cleanText(text: string): string {
+    if (!text) return '';
+    
+    return text
+      .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1') // 移除CDATA
+      .replace(/<[^>]*>/g, '') // 移除HTML标签
+      .replace(/&nbsp;/g, ' ') // 替换HTML实体
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/\s+/g, ' ') // 规范化空白字符
+      .trim();
   }
 
   /**

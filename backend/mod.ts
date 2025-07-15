@@ -8,6 +8,7 @@ import enhancedNewsRouter from './services/news/enhanced-router.ts';
 import { userRouter } from './services/user/router.ts';
 import communityRouter from './services/community/router.ts';
 import translationRouter from './services/translation/router.ts';
+import { crawlerRouter } from './services/news/crawler-router.ts';
 
 // 验证配置
 validateConfig();
@@ -132,6 +133,9 @@ app.use(communityRouter.allowedMethods());
 
 app.use(translationRouter.routes());
 app.use(translationRouter.allowedMethods());
+
+app.use(crawlerRouter.routes());
+app.use(crawlerRouter.allowedMethods());
 
 // 兼容旧的模拟API接口
 router.get('/api/v1/news', (ctx) => {

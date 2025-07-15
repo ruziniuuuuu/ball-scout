@@ -1,7 +1,7 @@
 name: ball_scout
 description: 球探社 - 中国最纯净的足球资讯聚合平台
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.1.0+1
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

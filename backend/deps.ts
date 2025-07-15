@@ -43,6 +43,12 @@ export { v4 as generateUuid } from "https://deno.land/std@0.208.0/uuid/mod.ts";
 // 时间处理
 export { format, parse } from "https://deno.land/std@0.208.0/datetime/mod.ts";
 
+// XML解析库
+export { parse as parseXml } from "https://deno.land/x/xml@2.1.1/mod.ts";
+
+// HTML解析库
+export { DOMParser } from "https://deno.land/x/deno_dom@v0.1.43/deno-dom-wasm.ts";
+
 // HTTP客户端工具函数
 export async function fetchWithTimeout(
   input: string | URL | Request,
@@ -64,4 +70,7 @@ export async function fetchWithTimeout(
     clearTimeout(timeoutId);
     throw error;
   }
-} 
+}
+
+// Cron任务调度库
+export { cron } from "https://deno.land/x/deno_cron@v1.0.0/cron.ts"; 
