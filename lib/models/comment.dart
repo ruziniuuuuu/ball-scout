@@ -3,6 +3,12 @@ import 'user.dart';
 
 part 'comment.g.dart';
 
+// 评论内容类型
+enum CommentContentType {
+  article,
+  match,
+}
+
 @JsonSerializable()
 class Comment {
   final String id;
@@ -22,6 +28,9 @@ class Comment {
   
   // 回复列表 (从API返回时可能包含)
   final List<Comment>? replies;
+  
+  // 当前用户是否点赞了这条评论
+  final bool? isLiked;
 
   const Comment({
     required this.id,
@@ -37,6 +46,7 @@ class Comment {
     required this.updatedAt,
     this.user,
     this.replies,
+    this.isLiked,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) => _$CommentFromJson(json);
@@ -56,6 +66,7 @@ class Comment {
     DateTime? updatedAt,
     User? user,
     List<Comment>? replies,
+    bool? isLiked,
   }) {
     return Comment(
       id: id ?? this.id,
@@ -71,6 +82,7 @@ class Comment {
       updatedAt: updatedAt ?? this.updatedAt,
       user: user ?? this.user,
       replies: replies ?? this.replies,
+      isLiked: isLiked ?? this.isLiked,
     );
   }
 
@@ -111,6 +123,17 @@ class Comment {
 
   // 回复数量
   int get replyCount => replies?.length ?? 0;
+  
+  // 获取评论作者（兼容性getter）
+  User get author => user ?? User(
+    id: userId,
+    username: '匿名用户',
+    email: '',
+    createdAt: createdAt,
+  );
+  
+  // 点赞数（兼容性getter）
+  int get likesCount => likes;
 }
 
 // 评论创建请求
