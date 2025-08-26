@@ -39,7 +39,7 @@ export class FootballTerms {
       ['full-time', '全场'],
       ['extra time', '加时赛'],
       ['penalty shootout', '点球大战'],
-      
+
       // 位置术语
       ['goalkeeper', '门将'],
       ['defender', '后卫'],
@@ -51,7 +51,7 @@ export class FootballTerms {
       ['full-back', '边后卫'],
       ['defensive midfielder', '防守型中场'],
       ['attacking midfielder', '攻击型中场'],
-      
+
       // 战术术语
       ['formation', '阵型'],
       ['tactic', '战术'],
@@ -63,7 +63,7 @@ export class FootballTerms {
       ['one-touch', '一脚出球'],
       ['header', '头球'],
       ['volley', '凌空抽射'],
-      
+
       // 比赛结果
       ['victory', '胜利'],
       ['defeat', '失败'],
@@ -72,7 +72,7 @@ export class FootballTerms {
       ['loss', '失利'],
       ['nil', '零'],
       ['clean sheet', '零封'],
-      
+
       // 转会术语
       ['transfer', '转会'],
       ['signing', '签约'],
@@ -82,7 +82,7 @@ export class FootballTerms {
       ['agent', '经纪人'],
       ['medical', '体检'],
       ['fee', '转会费'],
-      
+
       // 伤病术语
       ['injury', '伤病'],
       ['injured', '受伤'],
@@ -90,7 +90,7 @@ export class FootballTerms {
       ['recovery', '康复'],
       ['surgery', '手术'],
       ['rehabilitation', '康复训练'],
-      
+
       // 其他重要术语
       ['manager', '主教练'],
       ['coach', '教练'],
@@ -126,7 +126,7 @@ export class FootballTerms {
       ['West Ham United', '西汉姆联'],
       ['Brighton', '布莱顿'],
       ['Aston Villa', '阿斯顿维拉'],
-      
+
       // 西甲
       ['Real Madrid', '皇家马德里'],
       ['Barcelona', '巴塞罗那'],
@@ -136,7 +136,7 @@ export class FootballTerms {
       ['Villarreal', '比利亚雷亚尔'],
       ['Real Sociedad', '皇家社会'],
       ['Athletic Bilbao', '毕尔巴鄂竞技'],
-      
+
       // 意甲
       ['Juventus', '尤文图斯'],
       ['Inter Milan', '国际米兰'],
@@ -146,7 +146,7 @@ export class FootballTerms {
       ['Lazio', '拉齐奥'],
       ['Atalanta', '亚特兰大'],
       ['Fiorentina', '佛罗伦萨'],
-      
+
       // 德甲
       ['Bayern Munich', '拜仁慕尼黑'],
       ['Borussia Dortmund', '多特蒙德'],
@@ -154,7 +154,7 @@ export class FootballTerms {
       ['Bayer Leverkusen', '勒沃库森'],
       ['Eintracht Frankfurt', '法兰克福'],
       ['Wolfsburg', '沃尔夫斯堡'],
-      
+
       // 法甲
       ['Paris Saint-Germain', '巴黎圣日耳曼'],
       ['Marseille', '马赛'],
@@ -162,7 +162,7 @@ export class FootballTerms {
       ['Monaco', '摩纳哥'],
       ['Nice', '尼斯'],
       ['Lille', '里尔'],
-      
+
       // 其他知名球队
       ['Ajax', '阿贾克斯'],
       ['PSV', 'PSV埃因霍温'],
@@ -201,7 +201,7 @@ export class FootballTerms {
       ['Vinícius Jr.', '维尼修斯'],
       ['Federico Valverde', '巴尔韦德'],
       ['Jamal Musiala', '穆西亚拉'],
-      
+
       // 传奇球员
       ['Pelé', '贝利'],
       ['Diego Maradona', '马拉多纳'],
@@ -232,14 +232,14 @@ export class FootballTerms {
       ['UEFA Conference League', '欧洲协会联赛'],
       ['UEFA European Championship', '欧洲杯'],
       ['UEFA Nations League', '欧洲国家联赛'],
-      
+
       // 世界赛事
       ['FIFA World Cup', '世界杯'],
       ['FIFA Club World Cup', '世俱杯'],
       ['Copa América', '美洲杯'],
       ['Africa Cup of Nations', '非洲杯'],
       ['Asian Cup', '亚洲杯'],
-      
+
       // 联赛
       ['Premier League', '英超联赛'],
       ['La Liga', '西甲联赛'],
@@ -248,7 +248,7 @@ export class FootballTerms {
       ['Ligue 1', '法甲联赛'],
       ['Eredivisie', '荷甲联赛'],
       ['Primeira Liga', '葡超联赛'],
-      
+
       // 杯赛
       ['FA Cup', '足总杯'],
       ['Copa del Rey', '国王杯'],
@@ -259,7 +259,7 @@ export class FootballTerms {
       ['Community Shield', '社区盾杯'],
       ['Supercopa de España', '西班牙超级杯'],
       ['Supercoppa Italiana', '意大利超级杯'],
-      
+
       // 其他重要赛事
       ['El Clásico', '国家德比'],
       ['Manchester Derby', '曼彻斯特德比'],
@@ -449,4 +449,4 @@ export class FootballTerms {
 
     return contextParts.join('\n');
   }
-} 
+}

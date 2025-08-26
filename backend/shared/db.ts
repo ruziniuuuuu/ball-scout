@@ -50,7 +50,7 @@ export class DatabaseManager {
   async transaction<T>(callback: (client: Client) => Promise<T>): Promise<T> {
     const client = this.getClient();
     await client.queryObject('BEGIN');
-    
+
     try {
       const result = await callback(client);
       await client.queryObject('COMMIT');
@@ -131,7 +131,9 @@ export class RedisManager {
 }
 
 // 数据库初始化脚本
-export const initializeDatabase = async (db: DatabaseManager): Promise<void> => {
+export const initializeDatabase = async (
+  db: DatabaseManager,
+): Promise<void> => {
   const schemas = [
     // 用户表
     `CREATE TABLE IF NOT EXISTS users (
@@ -224,7 +226,7 @@ export const initializeDatabase = async (db: DatabaseManager): Promise<void> => 
   ];
 
   console.log('🚀 开始初始化数据库...');
-  
+
   for (const schema of schemas) {
     try {
       await db.query(schema);
@@ -233,6 +235,6 @@ export const initializeDatabase = async (db: DatabaseManager): Promise<void> => 
       throw error;
     }
   }
-  
+
   console.log('✅ 数据库初始化完成');
-}; 
+};

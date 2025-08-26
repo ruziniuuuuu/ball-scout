@@ -42,4 +42,4 @@
     "@jwt/": "https://deno.land/x/djwt@v3.0.1/",
     "@zod/": "https://deno.land/x/zod@v3.22.4/"
   }
-} 
+}

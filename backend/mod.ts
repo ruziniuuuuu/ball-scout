@@ -1,7 +1,11 @@
 import { Application, Router } from 'https://deno.land/x/oak@v12.6.1/mod.ts';
 import { oakCors } from 'https://deno.land/x/cors@v1.2.2/mod.ts';
 import { config, validateConfig } from './config.ts';
-import { DatabaseManager, RedisManager, initializeDatabase } from './shared/db.ts';
+import {
+  DatabaseManager,
+  initializeDatabase,
+  RedisManager,
+} from './shared/db.ts';
 
 // 引入各个服务路由
 import enhancedNewsRouter from './services/news/enhanced-router.ts';
@@ -9,6 +13,7 @@ import { userRouter } from './services/user/router.ts';
 import communityRouter from './services/community/router.ts';
 import translationRouter from './services/translation/router.ts';
 import { crawlerRouter } from './services/news/crawler-router.ts';
+import { analyticsRouter } from './routes/analytics.ts';
 
 // 验证配置
 validateConfig();
@@ -27,13 +32,15 @@ app.use(async (ctx, next) => {
     await next();
   } catch (error) {
     console.error('❌ 服务器错误:', error);
-    
+
     ctx.response.status = error.statusCode || 500;
     ctx.response.body = {
       success: false,
       error: {
         code: error.code || 'INTERNAL_ERROR',
-        message: config.env === 'production' ? '服务器内部错误' : (error as Error).message,
+        message: config.env === 'production'
+          ? '服务器内部错误'
+          : (error as Error).message,
       },
       meta: {
         timestamp: new Date().toISOString(),
@@ -54,7 +61,9 @@ app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
-  console.log(`${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} (${ms}ms)`);
+  console.log(
+    `${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} (${ms}ms)`,
+  );
 });
 
 // CORS中间件
@@ -112,6 +121,14 @@ router.get('/api', (ctx) => {
           'POST /api/v1/translate': 'AI翻译服务',
           'GET /api/v1/translate/status': '翻译服务状态',
         },
+        analytics: {
+          'POST /api/v1/analytics/track': '记录用户行为',
+          'GET /api/v1/analytics/content/:id': '获取内容分析',
+          'GET /api/v1/analytics/trending': '获取热门趋势',
+          'GET /api/v1/analytics/user/insights': '获取用户洞察',
+          'GET /api/v1/analytics/dashboard': '获取分析仪表板',
+          'GET /api/v1/analytics/system/metrics': '获取系统指标（管理员）',
+        },
       },
     },
   };
@@ -137,13 +154,17 @@ app.use(translationRouter.allowedMethods());
 app.use(crawlerRouter.routes());
 app.use(crawlerRouter.allowedMethods());
 
+app.use(analyticsRouter.routes());
+app.use(analyticsRouter.allowedMethods());
+
 // 兼容旧的模拟API接口
 router.get('/api/v1/news', (ctx) => {
   const mockNews = [
     {
       id: '1',
       title: '皇马签下新星前锋',
-      summary: '皇马官方宣布签下年仅19岁的巴西新星前锋，转会费高达8000万欧元。这位年轻球员在上赛季表现出色，被誉为下一个巴西传奇。',
+      summary:
+        '皇马官方宣布签下年仅19岁的巴西新星前锋，转会费高达8000万欧元。这位年轻球员在上赛季表现出色，被誉为下一个巴西传奇。',
       source: 'ESPN',
       category: 'transfer',
       publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
@@ -152,9 +173,10 @@ router.get('/api/v1/news', (ctx) => {
       content: '皇马官方宣布签下年仅19岁的巴西新星前锋...',
     },
     {
-      id: '2', 
+      id: '2',
       title: '欧冠八强对阵出炉',
-      summary: '2024年欧冠八强抽签结果公布，精彩对决即将上演。曼城对阵巴萨，皇马遭遇拜仁，这些经典对决让球迷期待不已。',
+      summary:
+        '2024年欧冠八强抽签结果公布，精彩对决即将上演。曼城对阵巴萨，皇马遭遇拜仁，这些经典对决让球迷期待不已。',
       source: 'UEFA',
       category: 'match',
       publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
@@ -165,7 +187,8 @@ router.get('/api/v1/news', (ctx) => {
     {
       id: '3',
       title: 'C罗创造新纪录',
-      summary: '葡萄牙巨星C罗在昨晚的比赛中再次创造历史，成为首位在5届欧洲杯中都有进球的球员。这一纪录彰显了他的持久性和伟大性。',
+      summary:
+        '葡萄牙巨星C罗在昨晚的比赛中再次创造历史，成为首位在5届欧洲杯中都有进球的球员。这一纪录彰显了他的持久性和伟大性。',
       source: 'Goal.com',
       category: 'news',
       publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
@@ -176,7 +199,8 @@ router.get('/api/v1/news', (ctx) => {
     {
       id: '4',
       title: '梅西状态分析：年龄不是问题',
-      summary: '尽管已经37岁，梅西在迈阿密国际的表现依然出色。专家分析认为，他的球技和视野没有丝毫衰退迹象。',
+      summary:
+        '尽管已经37岁，梅西在迈阿密国际的表现依然出色。专家分析认为，他的球技和视野没有丝毫衰退迹象。',
       source: '体坛周报',
       category: 'analysis',
       publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
@@ -187,14 +211,15 @@ router.get('/api/v1/news', (ctx) => {
     {
       id: '5',
       title: '英超积分榜更新',
-      summary: '英超第30轮战罢，曼城继续领跑积分榜，阿森纳紧随其后。利物浦和切尔西之间的争夺也异常激烈。',
+      summary:
+        '英超第30轮战罢，曼城继续领跑积分榜，阿森纳紧随其后。利物浦和切尔西之间的争夺也异常激烈。',
       source: 'BBC Sport',
       category: 'match',
       publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
       readCount: 1876,
       imageUrl: null,
       content: '英超第30轮战罢，曼城继续领跑积分榜...',
-    }
+    },
   ];
 
   ctx.response.body = {
@@ -211,7 +236,7 @@ router.get('/api/v1/news', (ctx) => {
 router.get('/api/v1/matches', (ctx) => {
   const queryDate = ctx.request.url.searchParams.get('date');
   const targetDate = queryDate ? new Date(queryDate) : new Date();
-  
+
   const mockMatches = [
     {
       id: '1',
@@ -221,7 +246,8 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: 2,
       awayScore: 1,
-      matchTime: new Date(targetDate.getTime() + 2 * 60 * 60 * 1000).toISOString(),
+      matchTime: new Date(targetDate.getTime() + 2 * 60 * 60 * 1000)
+        .toISOString(),
       status: 'finished',
       competition: '西甲',
       venue: '伯纳乌球场',
@@ -233,7 +259,7 @@ router.get('/api/v1/matches', (ctx) => {
           minute: 23,
           player: '本泽马',
           team: 'home',
-          description: '点球破门'
+          description: '点球破门',
         },
         {
           id: '2',
@@ -241,7 +267,7 @@ router.get('/api/v1/matches', (ctx) => {
           minute: 45,
           player: '梅西',
           team: 'away',
-          description: '任意球直接破门'
+          description: '任意球直接破门',
         },
         {
           id: '3',
@@ -249,9 +275,9 @@ router.get('/api/v1/matches', (ctx) => {
           minute: 78,
           player: '维尼修斯',
           team: 'home',
-          description: '反击破门'
-        }
-      ]
+          description: '反击破门',
+        },
+      ],
     },
     {
       id: '2',
@@ -261,7 +287,8 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: 1,
       awayScore: 1,
-      matchTime: new Date(targetDate.getTime() + 4 * 60 * 60 * 1000).toISOString(),
+      matchTime: new Date(targetDate.getTime() + 4 * 60 * 60 * 1000)
+        .toISOString(),
       status: 'live',
       competition: '英超',
       venue: '伊蒂哈德球场',
@@ -273,7 +300,7 @@ router.get('/api/v1/matches', (ctx) => {
           minute: 12,
           player: '哈兰德',
           team: 'home',
-          description: '近距离推射'
+          description: '近距离推射',
         },
         {
           id: '5',
@@ -281,9 +308,9 @@ router.get('/api/v1/matches', (ctx) => {
           minute: 56,
           player: '萨拉赫',
           team: 'away',
-          description: '单刀破门'
-        }
-      ]
+          description: '单刀破门',
+        },
+      ],
     },
     {
       id: '3',
@@ -293,12 +320,13 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: null,
       awayScore: null,
-      matchTime: new Date(targetDate.getTime() + 6 * 60 * 60 * 1000).toISOString(),
+      matchTime: new Date(targetDate.getTime() + 6 * 60 * 60 * 1000)
+        .toISOString(),
       status: 'scheduled',
       competition: '德甲',
       venue: '安联球场',
       minute: null,
-      events: []
+      events: [],
     },
     {
       id: '4',
@@ -308,17 +336,18 @@ router.get('/api/v1/matches', (ctx) => {
       awayTeamLogo: '',
       homeScore: null,
       awayScore: null,
-      matchTime: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+      matchTime: new Date(targetDate.getTime() + 24 * 60 * 60 * 1000)
+        .toISOString(),
       status: 'scheduled',
       competition: '意甲',
       venue: '圣西罗球场',
       minute: null,
-      events: []
-    }
+      events: [],
+    },
   ];
 
   // 根据日期筛选比赛
-  const filteredMatches = mockMatches.filter(match => {
+  const filteredMatches = mockMatches.filter((match) => {
     const matchDate = new Date(match.matchTime);
     return matchDate.toDateString() === targetDate.toDateString();
   });
@@ -337,7 +366,7 @@ router.get('/api/v1/matches', (ctx) => {
 // 获取单个比赛详情
 router.get('/api/v1/matches/:id', (ctx) => {
   const id = ctx.params.id;
-  
+
   // 模拟比赛详情数据
   const matchDetail = {
     id,
@@ -359,7 +388,7 @@ router.get('/api/v1/matches/:id', (ctx) => {
         minute: 23,
         player: '本泽马',
         team: 'home',
-        description: '点球破门'
+        description: '点球破门',
       },
       {
         id: '2',
@@ -367,7 +396,7 @@ router.get('/api/v1/matches/:id', (ctx) => {
         minute: 45,
         player: '梅西',
         team: 'away',
-        description: '任意球直接破门'
+        description: '任意球直接破门',
       },
       {
         id: '3',
@@ -375,9 +404,9 @@ router.get('/api/v1/matches/:id', (ctx) => {
         minute: 78,
         player: '维尼修斯',
         team: 'home',
-        description: '反击破门'
-      }
-    ]
+        description: '反击破门',
+      },
+    ],
   };
 
   ctx.response.body = {
@@ -389,7 +418,7 @@ router.get('/api/v1/matches/:id', (ctx) => {
 // 获取单个新闻详情
 router.get('/api/v1/news/:id', (ctx) => {
   const id = ctx.params.id;
-  
+
   // 模拟新闻详情数据
   const newsDetail = {
     id,
@@ -424,12 +453,12 @@ router.get('/api/v1/news/:id', (ctx) => {
 // 用户登录API
 router.post('/api/v1/auth/login', async (ctx) => {
   const body = await ctx.request.body().value;
-  
+
   // 简单的模拟登录验证
   if (body.email && body.password) {
     // 模拟验证过程
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     ctx.response.status = 200;
     ctx.response.body = {
       success: true,
@@ -464,12 +493,12 @@ router.post('/api/v1/auth/login', async (ctx) => {
 // 测试API - 用户注册
 router.post('/api/v1/auth/register', async (ctx) => {
   const body = await ctx.request.body().value;
-  
+
   // 简单的模拟注册验证
   if (body.username && body.email && body.password) {
     // 模拟注册过程
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     ctx.response.status = 201;
     ctx.response.body = {
       success: true,
@@ -507,11 +536,11 @@ async function startServer() {
     // 连接数据库
     console.log('🔌 正在连接数据库...');
     await dbManager.connect();
-    
+
     // 初始化数据库表结构
     console.log('🚀 正在初始化数据库...');
     await initializeDatabase(dbManager);
-    
+
     // 连接Redis（可选）
     try {
       console.log('🔌 正在连接Redis...');
@@ -519,14 +548,14 @@ async function startServer() {
     } catch (error) {
       console.warn('⚠️  Redis连接失败，继续使用内存缓存:', error.message);
     }
-    
+
     // 启动HTTP服务器
     console.log('🚀 启动球探社后端服务...');
     console.log(`🛠️  运行环境: ${config.env}`);
     console.log(`🌐 服务地址: http://localhost:${config.port}`);
     console.log(`📡 API文档: http://localhost:${config.port}/api`);
     console.log(`💚 健康检查: http://localhost:${config.port}/health`);
-    
+
     await app.listen({ port: config.port });
   } catch (error) {
     console.error('❌ 服务启动失败:', error);
@@ -537,7 +566,7 @@ async function startServer() {
 // 优雅关闭
 async function gracefulShutdown() {
   console.log('\n📴 正在关闭服务...');
-  
+
   try {
     await dbManager.disconnect();
     await redisManager.disconnect();
@@ -545,7 +574,7 @@ async function gracefulShutdown() {
   } catch (error) {
     console.error('❌ 关闭服务时出错:', error);
   }
-  
+
   Deno.exit(0);
 }
 
@@ -556,4 +585,4 @@ Deno.addSignalListener('SIGINT', gracefulShutdown);
 // 启动服务
 if (import.meta.main) {
   await startServer();
-} 
+}

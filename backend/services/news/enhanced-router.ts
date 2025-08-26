@@ -17,15 +17,17 @@ enhancedNewsRouter.get('/api/v1/news/enhanced', async (ctx) => {
     const language = query.get('language') || 'zh-CN';
     const translate = query.get('translate') === 'true';
 
-    console.log(`📰 获取增强新闻列表: category=${category}, page=${page}, limit=${limit}, translate=${translate}`);
+    console.log(
+      `📰 获取增强新闻列表: category=${category}, page=${page}, limit=${limit}, translate=${translate}`,
+    );
 
     // 获取聚合新闻
     const allNews = await newsAggregator.fetchAllNews();
-    
+
     // 按分类筛选
     let filteredNews = allNews;
     if (category !== 'all') {
-      filteredNews = allNews.filter(news => news.category === category);
+      filteredNews = allNews.filter((news) => news.category === category);
     }
 
     // 分页
@@ -37,7 +39,7 @@ enhancedNewsRouter.get('/api/v1/news/enhanced', async (ctx) => {
     let finalNews = paginatedNews;
     if (translate && language === 'zh-CN') {
       console.log(`🌍 开始翻译 ${paginatedNews.length} 条新闻...`);
-      
+
       const translationPromises = paginatedNews.map(async (news) => {
         try {
           // 只翻译英文内容
@@ -74,7 +76,7 @@ enhancedNewsRouter.get('/api/v1/news/enhanced', async (ctx) => {
               language: 'zh-CN',
             };
           }
-          
+
           return news;
         } catch (error) {
           console.error(`翻译新闻失败 (${news.id}):`, error);
@@ -97,11 +99,10 @@ enhancedNewsRouter.get('/api/v1/news/enhanced', async (ctx) => {
         category: category,
         language: language,
         translated: translate,
-        sources: [...new Set(finalNews.map(n => n.sourceName))],
+        sources: [...new Set(finalNews.map((n) => n.sourceName))],
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('获取增强新闻列表失败:', error);
     ctx.response.status = 500;
@@ -126,7 +127,7 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/:id', async (ctx) => {
 
     // 获取所有新闻（在实际项目中应该有缓存或数据库查询）
     const allNews = await newsAggregator.fetchAllNews();
-    const news = allNews.find(n => n.id === newsId);
+    const news = allNews.find((n) => n.id === newsId);
 
     if (!news) {
       ctx.response.status = 404;
@@ -143,7 +144,10 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/:id', async (ctx) => {
     let finalNews = news;
 
     // 翻译处理
-    if (translate && language === 'zh-CN' && news.originalLanguage === 'en' && !news.isTranslated) {
+    if (
+      translate && language === 'zh-CN' && news.originalLanguage === 'en' &&
+      !news.isTranslated
+    ) {
       try {
         console.log(`🌍 翻译新闻详情: ${newsId}`);
 
@@ -188,9 +192,10 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/:id', async (ctx) => {
           isTranslated: true,
           translationProvider: titleResult.model,
           language: 'zh-CN',
-          translationQuality: (titleResult.qualityScore + summaryResult.qualityScore + contentResult.qualityScore) / 3,
+          translationQuality:
+            (titleResult.qualityScore + summaryResult.qualityScore +
+              contentResult.qualityScore) / 3,
         };
-
       } catch (error) {
         console.error(`翻译新闻详情失败 (${newsId}):`, error);
         // 继续返回原始新闻
@@ -209,7 +214,6 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/:id', async (ctx) => {
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('获取增强新闻详情失败:', error);
     ctx.response.status = 500;
@@ -250,18 +254,25 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/search', async (ctx) => {
 
     // 获取所有新闻
     const allNews = await newsAggregator.fetchAllNews();
-    
+
     // 搜索过滤
-    const searchResults = allNews.filter(news => {
-      const matchesKeyword = news.title.toLowerCase().includes(keyword.toLowerCase()) ||
-                           news.summary.toLowerCase().includes(keyword.toLowerCase()) ||
-                           news.content.toLowerCase().includes(keyword.toLowerCase()) ||
-                           news.tags.some(tag => tag.toLowerCase().includes(keyword.toLowerCase())) ||
-                           news.entities.players.some(player => player.toLowerCase().includes(keyword.toLowerCase())) ||
-                           news.entities.teams.some(team => team.toLowerCase().includes(keyword.toLowerCase()));
-      
+    const searchResults = allNews.filter((news) => {
+      const matchesKeyword =
+        news.title.toLowerCase().includes(keyword.toLowerCase()) ||
+        news.summary.toLowerCase().includes(keyword.toLowerCase()) ||
+        news.content.toLowerCase().includes(keyword.toLowerCase()) ||
+        news.tags.some((tag) =>
+          tag.toLowerCase().includes(keyword.toLowerCase())
+        ) ||
+        news.entities.players.some((player) =>
+          player.toLowerCase().includes(keyword.toLowerCase())
+        ) ||
+        news.entities.teams.some((team) =>
+          team.toLowerCase().includes(keyword.toLowerCase())
+        );
+
       const matchesCategory = category === 'all' || news.category === category;
-      
+
       return matchesKeyword && matchesCategory;
     });
 
@@ -269,12 +280,13 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/search', async (ctx) => {
     searchResults.sort((a, b) => {
       const aRelevance = calculateRelevanceScore(a, keyword);
       const bRelevance = calculateRelevanceScore(b, keyword);
-      
+
       if (aRelevance !== bRelevance) {
         return bRelevance - aRelevance;
       }
-      
-      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+
+      return new Date(b.publishedAt).getTime() -
+        new Date(a.publishedAt).getTime();
     });
 
     // 分页
@@ -295,7 +307,9 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/search', async (ctx) => {
               priority: 'low', // 搜索结果优先级较低
             };
 
-            const titleResult = await translationService.translate(titleRequest);
+            const titleResult = await translationService.translate(
+              titleRequest,
+            );
             return {
               ...news,
               title: titleResult.translatedText,
@@ -328,7 +342,6 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/search', async (ctx) => {
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('增强搜索新闻失败:', error);
     ctx.response.status = 500;
@@ -347,12 +360,12 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/trending', async (ctx) => {
   try {
     const limit = parseInt(ctx.request.url.searchParams.get('limit') || '10');
     const translate = ctx.request.url.searchParams.get('translate') === 'true';
-    
+
     console.log(`🔥 获取增强热门新闻，限制: ${limit}`);
 
     // 获取所有新闻
     const allNews = await newsAggregator.fetchAllNews();
-    
+
     // 按热度排序（增强算法）
     const trendingNews = allNews
       .sort((a, b) => {
@@ -376,7 +389,9 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/trending', async (ctx) => {
               priority: 'medium',
             };
 
-            const titleResult = await translationService.translate(titleRequest);
+            const titleResult = await translationService.translate(
+              titleRequest,
+            );
             return {
               ...news,
               title: titleResult.translatedText,
@@ -406,7 +421,6 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/trending', async (ctx) => {
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('获取增强热门新闻失败:', error);
     ctx.response.status = 500;
@@ -424,39 +438,47 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/trending', async (ctx) => {
 enhancedNewsRouter.get('/api/v1/news/enhanced/stats', async (ctx) => {
   try {
     const allNews = await newsAggregator.fetchAllNews();
-    
+
     const stats = {
       total: allNews.length,
       byCategory: {} as Record<string, number>,
       bySource: {} as Record<string, number>,
       byLanguage: {} as Record<string, number>,
-      translated: allNews.filter(n => n.isTranslated).length,
-      last24Hours: allNews.filter(n => 
+      translated: allNews.filter((n) => n.isTranslated).length,
+      last24Hours: allNews.filter((n) =>
         new Date(n.publishedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000
       ).length,
-      totalReadCount: allNews.reduce((sum, n) => sum + n.readCount, 0),
-      averageCredibility: allNews.reduce((sum, n) => sum + n.credibilityScore, 0) / allNews.length,
-      averageImportance: allNews.reduce((sum, n) => sum + n.importanceScore, 0) / allNews.length,
+      totalReadCount: allNews.reduce((sum, n) =>
+        sum + n.readCount, 0),
+      averageCredibility: allNews.reduce((sum, n) =>
+        sum + n.credibilityScore, 0) / allNews.length,
+      averageImportance: allNews.reduce((sum, n) =>
+        sum + n.importanceScore, 0) / allNews.length,
       sentimentDistribution: {
-        positive: allNews.filter(n => n.sentiment === 'positive').length,
-        negative: allNews.filter(n => n.sentiment === 'negative').length,
-        neutral: allNews.filter(n => n.sentiment === 'neutral').length,
+        positive: allNews.filter((n) =>
+          n.sentiment === 'positive'
+        ).length,
+        negative: allNews.filter((n) => n.sentiment === 'negative').length,
+        neutral: allNews.filter((n) => n.sentiment === 'neutral').length,
       },
     };
 
     // 按分类统计
-    allNews.forEach(news => {
-      stats.byCategory[news.category] = (stats.byCategory[news.category] || 0) + 1;
+    allNews.forEach((news) => {
+      stats.byCategory[news.category] = (stats.byCategory[news.category] || 0) +
+        1;
     });
 
     // 按来源统计
-    allNews.forEach(news => {
-      stats.bySource[news.sourceName] = (stats.bySource[news.sourceName] || 0) + 1;
+    allNews.forEach((news) => {
+      stats.bySource[news.sourceName] = (stats.bySource[news.sourceName] || 0) +
+        1;
     });
 
     // 按语言统计
-    allNews.forEach(news => {
-      stats.byLanguage[news.language] = (stats.byLanguage[news.language] || 0) + 1;
+    allNews.forEach((news) => {
+      stats.byLanguage[news.language] = (stats.byLanguage[news.language] || 0) +
+        1;
     });
 
     ctx.response.body = {
@@ -466,7 +488,6 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/stats', async (ctx) => {
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('获取增强新闻统计失败:', error);
     ctx.response.status = 500;
@@ -484,7 +505,7 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/stats', async (ctx) => {
 enhancedNewsRouter.get('/api/v1/news/enhanced/sources', async (ctx) => {
   try {
     const sourceStats = await getNewsSourceStats();
-    
+
     ctx.response.body = {
       success: true,
       data: sourceStats,
@@ -492,7 +513,6 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/sources', async (ctx) => {
         timestamp: new Date().toISOString(),
       },
     };
-
   } catch (error) {
     console.error('获取新闻源状态失败:', error);
     ctx.response.status = 500;
@@ -507,7 +527,10 @@ enhancedNewsRouter.get('/api/v1/news/enhanced/sources', async (ctx) => {
 });
 
 // 辅助函数：计算相关性分数
-function calculateRelevanceScore(news: ProcessedNewsItem, keyword: string): number {
+function calculateRelevanceScore(
+  news: ProcessedNewsItem,
+  keyword: string,
+): number {
   const lowerKeyword = keyword.toLowerCase();
   let score = 0;
 
@@ -522,20 +545,32 @@ function calculateRelevanceScore(news: ProcessedNewsItem, keyword: string): numb
   }
 
   // 标签匹配
-  if (news.tags.some(tag => tag.toLowerCase().includes(lowerKeyword))) {
+  if (news.tags.some((tag) => tag.toLowerCase().includes(lowerKeyword))) {
     score += 3;
   }
 
   // 实体匹配
-  if (news.entities.players.some(player => player.toLowerCase().includes(lowerKeyword))) {
+  if (
+    news.entities.players.some((player) =>
+      player.toLowerCase().includes(lowerKeyword)
+    )
+  ) {
     score += 8; // 球员匹配权重高
   }
 
-  if (news.entities.teams.some(team => team.toLowerCase().includes(lowerKeyword))) {
+  if (
+    news.entities.teams.some((team) =>
+      team.toLowerCase().includes(lowerKeyword)
+    )
+  ) {
     score += 8; // 球队匹配权重高
   }
 
-  if (news.entities.leagues.some(league => league.toLowerCase().includes(lowerKeyword))) {
+  if (
+    news.entities.leagues.some((league) =>
+      league.toLowerCase().includes(lowerKeyword)
+    )
+  ) {
     score += 6;
   }
 
@@ -557,12 +592,10 @@ function calculateTrendingScore(news: ProcessedNewsItem): number {
   const timeDecay = Math.max(0, (24 - hoursSincePublish) / 24);
 
   // 综合评分
-  const score = (
-    news.importanceScore * 0.3 +
+  const score = news.importanceScore * 0.3 +
     news.credibilityScore * 0.2 +
     (news.readCount / 100) * 0.2 +
-    timeDecay * 0.3
-  );
+    timeDecay * 0.3;
 
   return score;
 }
@@ -573,7 +606,7 @@ async function getNewsSourceStats() {
     const allNews = await newsAggregator.fetchAllNews();
     const sourceStats = new Map();
 
-    allNews.forEach(news => {
+    allNews.forEach((news) => {
       if (!sourceStats.has(news.sourceId)) {
         sourceStats.set(news.sourceId, {
           id: news.sourceId,
@@ -590,7 +623,9 @@ async function getNewsSourceStats() {
       stats.total += 1;
 
       // 最近24小时
-      if (new Date(news.publishedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000) {
+      if (
+        new Date(news.publishedAt).getTime() > Date.now() - 24 * 60 * 60 * 1000
+      ) {
         stats.last24Hours += 1;
       }
 
@@ -600,8 +635,12 @@ async function getNewsSourceStats() {
       }
 
       // 更新平均值
-      stats.avgCredibility = (stats.avgCredibility * (stats.total - 1) + news.credibilityScore) / stats.total;
-      stats.avgImportance = (stats.avgImportance * (stats.total - 1) + news.importanceScore) / stats.total;
+      stats.avgCredibility =
+        (stats.avgCredibility * (stats.total - 1) + news.credibilityScore) /
+        stats.total;
+      stats.avgImportance =
+        (stats.avgImportance * (stats.total - 1) + news.importanceScore) /
+        stats.total;
     });
 
     return Array.from(sourceStats.values());
@@ -611,4 +650,4 @@ async function getNewsSourceStats() {
   }
 }
 
-export default enhancedNewsRouter; 
+export default enhancedNewsRouter;

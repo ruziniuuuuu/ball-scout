@@ -94,11 +94,21 @@ export interface TranslationQuality {
   suggestions?: string[];
 }
 
+export interface SupportedModel {
+  id: string;
+  name: string;
+  maxTokens: number;
+  costPer1kTokens: number;
+  languages: string[];
+  specialties: string[];
+}
+
 export const SUPPORTED_MODELS = {
   CLAUDE_SONNET: 'claude-3.5-sonnet',
   GPT4: 'gpt-4',
-  QWEN: 'qwen-plus',
-  LLAMA: 'llama-3.1-70b',
+  DEEPSEEK_CHAT: 'deepseek-chat',
+  GPT4_TURBO: 'gpt-4-turbo',
 } as const;
 
-export type SupportedModel = typeof SUPPORTED_MODELS[keyof typeof SUPPORTED_MODELS]; 
+export type SupportedModelId =
+  typeof SUPPORTED_MODELS[keyof typeof SUPPORTED_MODELS];

@@ -21,7 +21,7 @@ export class ServiceError extends Error {
     public code: string,
     message: string,
     public statusCode: number = 500,
-    public details?: unknown
+    public details?: unknown,
   ) {
     super(message);
     this.name = 'ServiceError';
@@ -72,12 +72,12 @@ export interface NewsArticle {
   updatedAt: Date;
 }
 
-export type NewsCategory = 
-  | 'news' 
-  | 'transfer' 
-  | 'match' 
-  | 'analysis' 
-  | 'interview' 
+export type NewsCategory =
+  | 'news'
+  | 'transfer'
+  | 'match'
+  | 'analysis'
+  | 'interview'
   | 'rumor';
 
 // 球队相关类型
@@ -117,12 +117,12 @@ export interface Match {
   updatedAt: Date;
 }
 
-export type MatchStatus = 
-  | 'scheduled' 
-  | 'live' 
-  | 'halftime' 
-  | 'finished' 
-  | 'cancelled' 
+export type MatchStatus =
+  | 'scheduled'
+  | 'live'
+  | 'halftime'
+  | 'finished'
+  | 'cancelled'
   | 'postponed';
 
 // 评论相关类型
@@ -171,4 +171,4 @@ export interface AppConfig {
     claudeApiKey?: string;
     tongYiApiKey?: string;
   };
-} 
+}

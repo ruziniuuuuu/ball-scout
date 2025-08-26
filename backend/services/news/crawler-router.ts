@@ -11,7 +11,7 @@ export const crawlerRouter = new Router();
 crawlerRouter.post('/api/v1/crawler/start', async (ctx) => {
   try {
     await autoNewsCrawler.start();
-    
+
     ctx.response.body = {
       success: true,
       message: '自动化新闻爬取服务已启动',
@@ -34,7 +34,7 @@ crawlerRouter.post('/api/v1/crawler/start', async (ctx) => {
 crawlerRouter.post('/api/v1/crawler/stop', (ctx) => {
   try {
     autoNewsCrawler.stop();
-    
+
     ctx.response.body = {
       success: true,
       message: '自动化新闻爬取服务已停止',
@@ -68,17 +68,19 @@ crawlerRouter.get('/api/v1/crawler/status', (ctx) => {
 crawlerRouter.post('/api/v1/crawler/run-once', async (ctx) => {
   try {
     // 创建一个临时的爬取器实例来执行单次任务
-    const tempCrawler = new (await import('./auto-crawler.ts')).AutoNewsCrawler({
-      interval: 1, // 无关紧要，因为我们只运行一次
-      maxNewsPerRun: 20,
-      enableTranslation: true,
-      saveToDatabase: false, // 暂时不保存到数据库
-      generateStatic: true,
-    });
-    
+    const tempCrawler = new (await import('./auto-crawler.ts')).AutoNewsCrawler(
+      {
+        interval: 1, // 无关紧要，因为我们只运行一次
+        maxNewsPerRun: 20,
+        enableTranslation: true,
+        saveToDatabase: false, // 暂时不保存到数据库
+        generateStatic: true,
+      },
+    );
+
     // 通过反射调用私有方法（仅用于手动触发）
     await (tempCrawler as any).runCrawl();
-    
+
     ctx.response.body = {
       success: true,
       message: '手动爬取任务已完成',
@@ -103,32 +105,40 @@ crawlerRouter.post('/api/v1/crawler/run-once', async (ctx) => {
 crawlerRouter.put('/api/v1/crawler/config', async (ctx) => {
   try {
     const body = await ctx.request.body().value;
-    
+
     // 验证配置参数
-    const validKeys = ['interval', 'maxNewsPerRun', 'enableTranslation', 'saveToDatabase', 'generateStatic'];
+    const validKeys = [
+      'interval',
+      'maxNewsPerRun',
+      'enableTranslation',
+      'saveToDatabase',
+      'generateStatic',
+    ];
     const config: any = {};
-    
+
     for (const key of validKeys) {
       if (body[key] !== undefined) {
         config[key] = body[key];
       }
     }
-    
+
     // 重新创建爬取器实例（如果需要的话）
     // 注意：这里需要停止当前服务并用新配置重启
     const wasRunning = autoNewsCrawler.getStatus().isRunning;
-    
+
     if (wasRunning) {
       autoNewsCrawler.stop();
     }
-    
+
     // 创建新的配置化实例
-    const newCrawler = new (await import('./auto-crawler.ts')).AutoNewsCrawler(config);
-    
+    const newCrawler = new (await import('./auto-crawler.ts')).AutoNewsCrawler(
+      config,
+    );
+
     if (wasRunning) {
       await newCrawler.start();
     }
-    
+
     ctx.response.body = {
       success: true,
       message: '爬取器配置已更新',
@@ -151,7 +161,7 @@ crawlerRouter.put('/api/v1/crawler/config', async (ctx) => {
 crawlerRouter.get('/api/v1/crawler/static-pages', async (ctx) => {
   try {
     const pages: string[] = [];
-    
+
     // 检查静态目录
     try {
       for await (const dirEntry of Deno.readDir('./static')) {
@@ -159,7 +169,7 @@ crawlerRouter.get('/api/v1/crawler/static-pages', async (ctx) => {
           pages.push(dirEntry.name);
         }
       }
-      
+
       // 检查新闻子目录
       try {
         for await (const dirEntry of Deno.readDir('./static/news')) {
@@ -173,7 +183,7 @@ crawlerRouter.get('/api/v1/crawler/static-pages', async (ctx) => {
     } catch {
       // 静态目录可能不存在
     }
-    
+
     ctx.response.body = {
       success: true,
       data: {
@@ -196,4 +206,4 @@ crawlerRouter.get('/api/v1/crawler/static-pages', async (ctx) => {
       },
     };
   }
-}); 
+});

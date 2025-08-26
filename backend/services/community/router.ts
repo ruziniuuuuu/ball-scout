@@ -28,8 +28,8 @@ const mockComments = [
         favoriteTeams: ['皇马'],
         favoriteLeagues: ['西甲'],
         language: 'zh-CN',
-        theme: 'light'
-      }
+        theme: 'light',
+      },
     },
     replies: [
       {
@@ -56,12 +56,12 @@ const mockComments = [
             favoriteTeams: ['皇马'],
             favoriteLeagues: ['西甲', '欧冠'],
             language: 'zh-CN',
-            theme: 'dark'
-          }
+            theme: 'dark',
+          },
         },
-        replies: []
-      }
-    ]
+        replies: [],
+      },
+    ],
   },
   {
     id: '3',
@@ -87,11 +87,11 @@ const mockComments = [
         favoriteTeams: ['皇马', '巴西国家队'],
         favoriteLeagues: ['西甲', '巴甲'],
         language: 'zh-CN',
-        theme: 'light'
-      }
+        theme: 'light',
+      },
     },
-    replies: []
-  }
+    replies: [],
+  },
 ];
 
 // 获取评论列表
@@ -105,22 +105,28 @@ router.get('/api/v1/comments', (ctx) => {
   // 过滤评论
   let filteredComments = mockComments;
   if (articleId) {
-    filteredComments = mockComments.filter(c => c.articleId === articleId);
+    filteredComments = mockComments.filter((c) => c.articleId === articleId);
   }
   if (matchId) {
-    filteredComments = mockComments.filter(c => c.matchId === matchId);
+    filteredComments = mockComments.filter((c) => c.matchId === matchId);
   }
 
   // 排序
   switch (sortType) {
     case 'newest':
-      filteredComments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      filteredComments.sort((a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       break;
     case 'oldest':
-      filteredComments.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      filteredComments.sort((a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
       break;
     case 'hottest':
-      filteredComments.sort((a, b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+      filteredComments.sort((a, b) =>
+        (b.likes - b.dislikes) - (a.likes - a.dislikes)
+      );
       break;
   }
 
@@ -172,10 +178,10 @@ router.post('/api/v1/comments', async (ctx) => {
           favoriteTeams: [],
           favoriteLeagues: [],
           language: 'zh-CN',
-          theme: 'light'
-        }
+          theme: 'light',
+        },
       },
-      replies: []
+      replies: [],
     };
 
     // 添加到模拟数据中
@@ -184,7 +190,7 @@ router.post('/api/v1/comments', async (ctx) => {
     ctx.response.body = {
       success: true,
       data: newComment,
-      message: '评论发表成功'
+      message: '评论发表成功',
     };
   } catch (error) {
     ctx.response.status = 400;
@@ -192,8 +198,8 @@ router.post('/api/v1/comments', async (ctx) => {
       success: false,
       error: {
         code: 'INVALID_REQUEST',
-        message: '请求参数无效'
-      }
+        message: '请求参数无效',
+      },
     };
   }
 });
@@ -201,7 +207,7 @@ router.post('/api/v1/comments', async (ctx) => {
 // 点赞评论
 router.post('/api/v1/comments/:commentId/like', (ctx) => {
   const commentId = ctx.params.commentId;
-  const comment = mockComments.find(c => c.id === commentId);
+  const comment = mockComments.find((c) => c.id === commentId);
 
   if (!comment) {
     ctx.response.status = 404;
@@ -209,8 +215,8 @@ router.post('/api/v1/comments/:commentId/like', (ctx) => {
       success: false,
       error: {
         code: 'COMMENT_NOT_FOUND',
-        message: '评论不存在'
-      }
+        message: '评论不存在',
+      },
     };
     return;
   }
@@ -223,16 +229,16 @@ router.post('/api/v1/comments/:commentId/like', (ctx) => {
     data: {
       commentId,
       likes: comment.likes,
-      dislikes: comment.dislikes
+      dislikes: comment.dislikes,
     },
-    message: '点赞成功'
+    message: '点赞成功',
   };
 });
 
 // 取消点赞评论
 router.delete('/api/v1/comments/:commentId/like', (ctx) => {
   const commentId = ctx.params.commentId;
-  const comment = mockComments.find(c => c.id === commentId);
+  const comment = mockComments.find((c) => c.id === commentId);
 
   if (!comment) {
     ctx.response.status = 404;
@@ -240,8 +246,8 @@ router.delete('/api/v1/comments/:commentId/like', (ctx) => {
       success: false,
       error: {
         code: 'COMMENT_NOT_FOUND',
-        message: '评论不存在'
-      }
+        message: '评论不存在',
+      },
     };
     return;
   }
@@ -254,16 +260,16 @@ router.delete('/api/v1/comments/:commentId/like', (ctx) => {
     data: {
       commentId,
       likes: comment.likes,
-      dislikes: comment.dislikes
+      dislikes: comment.dislikes,
     },
-    message: '取消点赞成功'
+    message: '取消点赞成功',
   };
 });
 
 // 踩评论
 router.post('/api/v1/comments/:commentId/dislike', (ctx) => {
   const commentId = ctx.params.commentId;
-  const comment = mockComments.find(c => c.id === commentId);
+  const comment = mockComments.find((c) => c.id === commentId);
 
   if (!comment) {
     ctx.response.status = 404;
@@ -271,8 +277,8 @@ router.post('/api/v1/comments/:commentId/dislike', (ctx) => {
       success: false,
       error: {
         code: 'COMMENT_NOT_FOUND',
-        message: '评论不存在'
-      }
+        message: '评论不存在',
+      },
     };
     return;
   }
@@ -285,16 +291,16 @@ router.post('/api/v1/comments/:commentId/dislike', (ctx) => {
     data: {
       commentId,
       likes: comment.likes,
-      dislikes: comment.dislikes
+      dislikes: comment.dislikes,
     },
-    message: '操作成功'
+    message: '操作成功',
   };
 });
 
 // 删除评论
 router.delete('/api/v1/comments/:commentId', (ctx) => {
   const commentId = ctx.params.commentId;
-  const comment = mockComments.find(c => c.id === commentId);
+  const comment = mockComments.find((c) => c.id === commentId);
 
   if (!comment) {
     ctx.response.status = 404;
@@ -302,8 +308,8 @@ router.delete('/api/v1/comments/:commentId', (ctx) => {
       success: false,
       error: {
         code: 'COMMENT_NOT_FOUND',
-        message: '评论不存在'
-      }
+        message: '评论不存在',
+      },
     };
     return;
   }
@@ -314,8 +320,8 @@ router.delete('/api/v1/comments/:commentId', (ctx) => {
 
   ctx.response.body = {
     success: true,
-    message: '评论删除成功'
+    message: '评论删除成功',
   };
 });
 
-export default router; 
+export default router;

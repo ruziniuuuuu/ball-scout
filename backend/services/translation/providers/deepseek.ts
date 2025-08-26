@@ -1,19 +1,23 @@
-import { TranslationRequest, TranslationResult, SupportedModel } from '../types.ts';
+import {
+  SupportedModel,
+  TranslationRequest,
+  TranslationResult,
+} from '../types.ts';
 
 export class DeepSeekTranslationProvider {
   private apiKey: string;
   private baseUrl = 'https://api.deepseek.com/v1/chat/completions';
-  
+
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
   async translate(request: TranslationRequest): Promise<TranslationResult> {
     const startTime = Date.now();
-    
+
     try {
       const prompt = this.buildFootballTranslationPrompt(request);
-      
+
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: {
@@ -25,7 +29,8 @@ export class DeepSeekTranslationProvider {
           messages: [
             {
               role: 'system',
-              content: '你是一位专业的足球新闻翻译专家，擅长将各种语言的足球新闻准确翻译成中文。',
+              content:
+                '你是一位专业的足球新闻翻译专家，擅长将各种语言的足球新闻准确翻译成中文。',
             },
             {
               role: 'user',
@@ -40,7 +45,9 @@ export class DeepSeekTranslationProvider {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`DeepSeek API error: ${response.status} - ${errorText}`);
+        throw new Error(
+          `DeepSeek API error: ${response.status} - ${errorText}`,
+        );
       }
 
       const data = await response.json();
@@ -51,7 +58,7 @@ export class DeepSeekTranslationProvider {
       const qualityScore = this.evaluateTranslationQuality(
         request.text,
         translatedText,
-        request.domain
+        request.domain,
       );
 
       return {
@@ -73,8 +80,10 @@ export class DeepSeekTranslationProvider {
 
   private buildFootballTranslationPrompt(request: TranslationRequest): string {
     const { text, sourceLanguage, targetLanguage, domain } = request;
-    
-    return `请将以下${sourceLanguage}足球新闻翻译成${targetLanguage === 'zh-CN' ? '简体中文' : '繁体中文'}，要求：
+
+    return `请将以下${sourceLanguage}足球新闻翻译成${
+      targetLanguage === 'zh-CN' ? '简体中文' : '繁体中文'
+    }，要求：
 
 1. 保持足球术语的专业性和准确性
 2. 球员和球队名称使用中文惯用译名（如：Messi→梅西，Real Madrid→皇家马德里，Bayern Munich→拜仁慕尼黑）
@@ -114,37 +123,73 @@ export class DeepSeekTranslationProvider {
   private evaluateTranslationQuality(
     originalText: string,
     translatedText: string,
-    domain: string
+    domain: string,
   ): number {
     // 翻译质量评估算法
     let score = 0.85; // DeepSeek的基础分数
 
     // 检查是否包含足球相关术语
     const footballTerms = [
-      '足球', '球员', '球队', '比赛', '联赛', '转会', '进球', '助攻', 
-      '射门', '传球', '防守', '进攻', '教练', '裁判', '球场', '赛季',
-      '英超', '西甲', '意甲', '德甲', '欧冠', '欧联杯', '世界杯'
+      '足球',
+      '球员',
+      '球队',
+      '比赛',
+      '联赛',
+      '转会',
+      '进球',
+      '助攻',
+      '射门',
+      '传球',
+      '防守',
+      '进攻',
+      '教练',
+      '裁判',
+      '球场',
+      '赛季',
+      '英超',
+      '西甲',
+      '意甲',
+      '德甲',
+      '欧冠',
+      '欧联杯',
+      '世界杯',
     ];
-    
-    const hasFootballTerms = footballTerms.some(term => 
+
+    const hasFootballTerms = footballTerms.some((term) =>
       translatedText.includes(term)
     );
-    
+
     if (hasFootballTerms) {
       score += 0.1;
     }
 
     // 检查译文是否包含常见的球员/球队中文译名
     const commonNames = [
-      '梅西', 'C罗', '内马尔', '姆巴佩', '哈兰德', '贝林厄姆',
-      '皇马', '巴萨', '曼联', '曼城', '利物浦', '阿森纳', '切尔西',
-      '拜仁', '多特', 'PSG', '国米', '米兰', '尤文'
+      '梅西',
+      'C罗',
+      '内马尔',
+      '姆巴佩',
+      '哈兰德',
+      '贝林厄姆',
+      '皇马',
+      '巴萨',
+      '曼联',
+      '曼城',
+      '利物浦',
+      '阿森纳',
+      '切尔西',
+      '拜仁',
+      '多特',
+      'PSG',
+      '国米',
+      '米兰',
+      '尤文',
     ];
-    
-    const hasKnownNames = commonNames.some(name => 
+
+    const hasKnownNames = commonNames.some((name) =>
       translatedText.includes(name)
     );
-    
+
     if (hasKnownNames) {
       score += 0.05;
     }
@@ -159,10 +204,10 @@ export class DeepSeekTranslationProvider {
 
     // 检查是否有明显的翻译错误标识
     const errorIndicators = ['[翻译错误]', '[无法翻译]', '???', '***'];
-    const hasErrors = errorIndicators.some(indicator => 
+    const hasErrors = errorIndicators.some((indicator) =>
       translatedText.includes(indicator)
     );
-    
+
     if (hasErrors) {
       score -= 0.3;
     }
@@ -178,9 +223,20 @@ export class DeepSeekTranslationProvider {
         name: 'DeepSeek Chat',
         maxTokens: 32768,
         costPer1kTokens: 0.001, // DeepSeek的优势：低成本
-        languages: ['en', 'zh-CN', 'zh-TW', 'es', 'fr', 'de', 'it', 'pt', 'ja', 'ko'],
+        languages: [
+          'en',
+          'zh-CN',
+          'zh-TW',
+          'es',
+          'fr',
+          'de',
+          'it',
+          'pt',
+          'ja',
+          'ko',
+        ],
         specialties: ['football', 'sports', 'news', 'general'],
       },
     ];
   }
-} 
+}

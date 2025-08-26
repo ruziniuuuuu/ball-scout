@@ -3,7 +3,7 @@
  * 集成多个真实新闻源，提供统一的新闻数据接口
  */
 
-import { parseXml, DOMParser, fetchWithTimeout } from '../../deps.ts';
+import { DOMParser, fetchWithTimeout, parseXml } from '../../deps.ts';
 
 export interface NewsSource {
   id: string;
@@ -91,7 +91,8 @@ export const NEWS_SOURCES: NewsSource[] = [
   {
     id: 'marca',
     name: 'Marca',
-    baseUrl: 'https://feeds.marca.com/marca/rss/futbol/primera-division/rss.xml',
+    baseUrl:
+      'https://feeds.marca.com/marca/rss/futbol/primera-division/rss.xml',
     rateLimit: 80,
   },
 ];
@@ -116,7 +117,7 @@ export class NewsAggregator {
    */
   async fetchAllNews(): Promise<ProcessedNewsItem[]> {
     const allNews: ProcessedNewsItem[] = [];
-    
+
     for (const source of NEWS_SOURCES) {
       try {
         const newsItems = await this.fetchFromSource(source);
@@ -128,7 +129,7 @@ export class NewsAggregator {
 
     // 按发布时间排序，去重，评分
     const processedNews = this.deduplicateAndRank(allNews);
-    
+
     return processedNews;
   }
 
@@ -152,7 +153,7 @@ export class NewsAggregator {
 
     try {
       console.log(`正在从 ${source.name} 获取新闻...`);
-      
+
       // 更新速率限制计数器
       this.rateLimitCounters.set(source.id, currentCount + 1);
       this.lastFetchTime.set(source.id, now);
@@ -183,13 +184,12 @@ export class NewsAggregator {
 
       // 处理原始新闻数据
       const processedNews = await this.processRawNews(rawNews, source);
-      
+
       // 缓存结果
       this.cache.set(source.id, processedNews);
-      
+
       console.log(`从 ${source.name} 获取了 ${processedNews.length} 条新闻`);
       return processedNews;
-
     } catch (error) {
       console.error(`从 ${source.name} 获取新闻时出错:`, error);
       return this.cache.get(source.id) || [];
@@ -202,16 +202,18 @@ export class NewsAggregator {
   private async fetchFromBBCRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
       console.log(`📡 正在获取BBC Sport RSS: ${source.baseUrl}`);
-      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
-      
+      const response = await fetchWithTimeout(source.baseUrl, {
+        timeout: 15000,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
-      
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: this.cleanText(item.title),
         description: this.cleanText(item.description),
         content: this.cleanText(item.description),
@@ -235,16 +237,18 @@ export class NewsAggregator {
   private async fetchFromESPNRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
       console.log(`📡 正在获取ESPN Soccer RSS: ${source.baseUrl}`);
-      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
-      
+      const response = await fetchWithTimeout(source.baseUrl, {
+        timeout: 15000,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
-      
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: this.cleanText(item.title),
         description: this.cleanText(item.description),
         content: this.cleanText(item.description),
@@ -268,16 +272,18 @@ export class NewsAggregator {
   private async fetchFromGoalRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
       console.log(`📡 正在获取Goal.com RSS: ${source.baseUrl}`);
-      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
-      
+      const response = await fetchWithTimeout(source.baseUrl, {
+        timeout: 15000,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
-      
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: this.cleanText(item.title),
         description: this.cleanText(item.description),
         content: this.cleanText(item.description),
@@ -301,16 +307,18 @@ export class NewsAggregator {
   private async fetchFromSkyRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
       console.log(`📡 正在获取Sky Sports RSS: ${source.baseUrl}`);
-      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
-      
+      const response = await fetchWithTimeout(source.baseUrl, {
+        timeout: 15000,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
-      
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: this.cleanText(item.title),
         description: this.cleanText(item.description),
         content: this.cleanText(item.description),
@@ -334,16 +342,18 @@ export class NewsAggregator {
   private async fetchFromMarcaRSS(source: NewsSource): Promise<RawNewsItem[]> {
     try {
       console.log(`📡 正在获取Marca RSS: ${source.baseUrl}`);
-      const response = await fetchWithTimeout(source.baseUrl, { timeout: 15000 });
-      
+      const response = await fetchWithTimeout(source.baseUrl, {
+        timeout: 15000,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const xmlText = await response.text();
       const items = this.parseRSSItems(xmlText);
-      
-      return items.map(item => ({
+
+      return items.map((item) => ({
         title: this.cleanText(item.title),
         description: this.cleanText(item.description),
         content: this.cleanText(item.description),
@@ -368,35 +378,40 @@ export class NewsAggregator {
     try {
       const doc = parseXml(xmlText);
       const items: any[] = [];
-      
+
       // 解析RSS 2.0格式
       const rssItems = doc.rss?.channel?.item || [];
       const feedItems = doc.feed?.entry || []; // Atom格式支持
-      
+
       const allItems = Array.isArray(rssItems) ? rssItems : [rssItems];
-      
+
       for (const item of allItems.filter(Boolean)) {
         const parsedItem = {
           title: this.extractTextContent(item.title),
-          description: this.extractTextContent(item.description) || this.extractTextContent(item.summary),
+          description: this.extractTextContent(item.description) ||
+            this.extractTextContent(item.summary),
           link: this.extractTextContent(item.link) || item.link?.['@href'],
-          pubDate: this.extractTextContent(item.pubDate) || this.extractTextContent(item.published),
-          author: this.extractTextContent(item.author) || this.extractTextContent(item['dc:creator']),
+          pubDate: this.extractTextContent(item.pubDate) ||
+            this.extractTextContent(item.published),
+          author: this.extractTextContent(item.author) ||
+            this.extractTextContent(item['dc:creator']),
           guid: this.extractTextContent(item.guid),
           category: this.extractTextContent(item.category),
-          enclosure: item.enclosure ? {
-            url: item.enclosure['@url'],
-            type: item.enclosure['@type'],
-            length: item.enclosure['@length']
-          } : null,
+          enclosure: item.enclosure
+            ? {
+              url: item.enclosure['@url'],
+              type: item.enclosure['@type'],
+              length: item.enclosure['@length'],
+            }
+            : null,
           image: this.extractImageUrl(item),
         };
-        
+
         if (parsedItem.title && parsedItem.link) {
           items.push(parsedItem);
         }
       }
-      
+
       console.log(`✅ 成功解析 ${items.length} 条RSS项目`);
       return items;
     } catch (error) {
@@ -410,19 +425,19 @@ export class NewsAggregator {
    */
   private extractTextContent(element: any): string {
     if (!element) return '';
-    
+
     if (typeof element === 'string') {
       return this.cleanText(element);
     }
-    
+
     if (element['#text']) {
       return this.cleanText(element['#text']);
     }
-    
+
     if (element['$']) {
       return this.cleanText(element['$']);
     }
-    
+
     return '';
   }
 
@@ -431,25 +446,27 @@ export class NewsAggregator {
    */
   private extractImageUrl(item: any): string | null {
     // 尝试多种可能的图片字段
-    if (item.enclosure?.['@url'] && item.enclosure?.['@type']?.includes('image')) {
+    if (
+      item.enclosure?.['@url'] && item.enclosure?.['@type']?.includes('image')
+    ) {
       return item.enclosure['@url'];
     }
-    
+
     if (item['media:thumbnail']?.['@url']) {
       return item['media:thumbnail']['@url'];
     }
-    
+
     if (item['media:content']?.['@url']) {
       return item['media:content']['@url'];
     }
-    
+
     // 从描述中提取图片
     const description = this.extractTextContent(item.description);
     const imgMatch = description.match(/<img[^>]+src="([^"]+)"/i);
     if (imgMatch) {
       return imgMatch[1];
     }
-    
+
     return null;
   }
 
@@ -461,13 +478,14 @@ export class NewsAggregator {
       const parser = new DOMParser();
       const doc = parser.parseFromString(xmlText, 'text/xml');
       const items: any[] = [];
-      
+
       const itemElements = doc.querySelectorAll('item');
-      
+
       for (const item of itemElements) {
         const parsedItem = {
           title: item.querySelector('title')?.textContent?.trim() || '',
-          description: item.querySelector('description')?.textContent?.trim() || '',
+          description: item.querySelector('description')?.textContent?.trim() ||
+            '',
           link: item.querySelector('link')?.textContent?.trim() || '',
           pubDate: item.querySelector('pubDate')?.textContent?.trim() || '',
           author: item.querySelector('author')?.textContent?.trim() || '',
@@ -476,22 +494,22 @@ export class NewsAggregator {
           enclosure: null,
           image: null,
         };
-        
+
         // 处理enclosure
         const enclosureEl = item.querySelector('enclosure');
         if (enclosureEl) {
           parsedItem.enclosure = {
             url: enclosureEl.getAttribute('url'),
             type: enclosureEl.getAttribute('type'),
-            length: enclosureEl.getAttribute('length')
+            length: enclosureEl.getAttribute('length'),
           };
         }
-        
+
         if (parsedItem.title && parsedItem.link) {
           items.push(parsedItem);
         }
       }
-      
+
       console.log(`✅ DOM备用解析成功解析 ${items.length} 条RSS项目`);
       return items;
     } catch (error) {
@@ -505,7 +523,7 @@ export class NewsAggregator {
    */
   private cleanText(text: string): string {
     if (!text) return '';
-    
+
     return text
       .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1') // 移除CDATA
       .replace(/<[^>]*>/g, '') // 移除HTML标签
@@ -524,30 +542,46 @@ export class NewsAggregator {
    */
   private categorizeNews(title: string, description: string): string {
     const text = (title + ' ' + description).toLowerCase();
-    
-    if (text.includes('transfer') || text.includes('签约') || text.includes('转会')) {
+
+    if (
+      text.includes('transfer') || text.includes('签约') ||
+      text.includes('转会')
+    ) {
       return 'transfer';
     }
-    if (text.includes('match') || text.includes('vs') || text.includes('比赛')) {
+    if (
+      text.includes('match') || text.includes('vs') || text.includes('比赛')
+    ) {
       return 'match';
     }
-    if (text.includes('injury') || text.includes('injured') || text.includes('伤病')) {
+    if (
+      text.includes('injury') || text.includes('injured') ||
+      text.includes('伤病')
+    ) {
       return 'injury';
     }
-    if (text.includes('rumor') || text.includes('传言') || text.includes('据悉')) {
+    if (
+      text.includes('rumor') || text.includes('传言') || text.includes('据悉')
+    ) {
       return 'rumor';
     }
-    if (text.includes('analysis') || text.includes('分析') || text.includes('review')) {
+    if (
+      text.includes('analysis') || text.includes('分析') ||
+      text.includes('review')
+    ) {
       return 'analysis';
     }
-    
+
     return 'news';
   }
 
   /**
    * 处理原始新闻数据
    */
-  private async processRawNews(rawNews: RawNewsItem[], source: NewsSource): Promise<ProcessedNewsItem[]> {
+  private async processRawNews(
+    rawNews: RawNewsItem[],
+    source: NewsSource,
+  ): Promise<ProcessedNewsItem[]> {
     const processedNews: ProcessedNewsItem[] = [];
 
     for (const raw of rawNews) {
@@ -592,7 +626,8 @@ export class NewsAggregator {
    */
   private generateNewsId(raw: RawNewsItem): string {
     // 使用URL和标题生成唯一ID
-    const hash = btoa(raw.url + raw.title).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    const hash = btoa(raw.url + raw.title).replace(/[^a-zA-Z0-9]/g, '')
+      .substring(0, 16);
     return `news_${raw.sourceId}_${hash}`;
   }
 
@@ -618,7 +653,7 @@ export class NewsAggregator {
       goal_com: 0.75,
       marca: 0.80,
     };
-    
+
     return credibilityMap[source.id] || 0.5;
   }
 
@@ -630,9 +665,18 @@ export class NewsAggregator {
     let score = 1;
 
     // 根据关键词提升重要性
-    if (text.includes('messi') || text.includes('ronaldo') || text.includes('梅西') || text.includes('C罗')) score += 2;
-    if (text.includes('champions league') || text.includes('世界杯') || text.includes('欧冠')) score += 2;
-    if (text.includes('real madrid') || text.includes('barcelona') || text.includes('皇马') || text.includes('巴萨')) score += 1;
+    if (
+      text.includes('messi') || text.includes('ronaldo') ||
+      text.includes('梅西') || text.includes('C罗')
+    ) score += 2;
+    if (
+      text.includes('champions league') || text.includes('世界杯') ||
+      text.includes('欧冠')
+    ) score += 2;
+    if (
+      text.includes('real madrid') || text.includes('barcelona') ||
+      text.includes('皇马') || text.includes('巴萨')
+    ) score += 1;
     if (text.includes('transfer') || text.includes('转会')) score += 1;
     if (text.includes('injury') || text.includes('伤病')) score += 1;
 
@@ -644,14 +688,44 @@ export class NewsAggregator {
    */
   private extractEntities(text: string): ProcessedNewsItem['entities'] {
     // 这里应该使用NLP库，暂时使用简单的关键词匹配
-    const teams = ['Real Madrid', 'Barcelona', 'Manchester United', 'Liverpool', 'Arsenal', 'Chelsea', 'Manchester City', 'Bayern Munich', 'PSG', 'Juventus'];
-    const players = ['Messi', 'Ronaldo', 'Mbappé', 'Haaland', 'Benzema', 'Lewandowski'];
-    const leagues = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Champions League'];
+    const teams = [
+      'Real Madrid',
+      'Barcelona',
+      'Manchester United',
+      'Liverpool',
+      'Arsenal',
+      'Chelsea',
+      'Manchester City',
+      'Bayern Munich',
+      'PSG',
+      'Juventus',
+    ];
+    const players = [
+      'Messi',
+      'Ronaldo',
+      'Mbappé',
+      'Haaland',
+      'Benzema',
+      'Lewandowski',
+    ];
+    const leagues = [
+      'Premier League',
+      'La Liga',
+      'Serie A',
+      'Bundesliga',
+      'Champions League',
+    ];
 
     return {
-      teams: teams.filter(team => text.toLowerCase().includes(team.toLowerCase())),
-      players: players.filter(player => text.toLowerCase().includes(player.toLowerCase())),
-      leagues: leagues.filter(league => text.toLowerCase().includes(league.toLowerCase())),
+      teams: teams.filter((team) =>
+        text.toLowerCase().includes(team.toLowerCase())
+      ),
+      players: players.filter((player) =>
+        text.toLowerCase().includes(player.toLowerCase())
+      ),
+      leagues: leagues.filter((league) =>
+        text.toLowerCase().includes(league.toLowerCase())
+      ),
       competitions: [],
     };
   }
@@ -660,12 +734,28 @@ export class NewsAggregator {
    * 分析情感
    */
   private analyzeSentiment(text: string): 'positive' | 'negative' | 'neutral' {
-    const positiveWords = ['great', 'excellent', 'amazing', 'victory', 'win', 'success'];
-    const negativeWords = ['terrible', 'awful', 'loss', 'injury', 'defeat', 'crisis'];
+    const positiveWords = [
+      'great',
+      'excellent',
+      'amazing',
+      'victory',
+      'win',
+      'success',
+    ];
+    const negativeWords = [
+      'terrible',
+      'awful',
+      'loss',
+      'injury',
+      'defeat',
+      'crisis',
+    ];
 
     const lowerText = text.toLowerCase();
-    const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
-    const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
+    const positiveCount =
+      positiveWords.filter((word) => lowerText.includes(word)).length;
+    const negativeCount =
+      negativeWords.filter((word) => lowerText.includes(word)).length;
 
     if (positiveCount > negativeCount) return 'positive';
     if (negativeCount > positiveCount) return 'negative';
@@ -691,15 +781,19 @@ export class NewsAggregator {
   /**
    * 去重和排序
    */
-  private deduplicateAndRank(allNews: ProcessedNewsItem[]): ProcessedNewsItem[] {
+  private deduplicateAndRank(
+    allNews: ProcessedNewsItem[],
+  ): ProcessedNewsItem[] {
     // 按标题相似度去重
     const uniqueNews = new Map<string, ProcessedNewsItem>();
-    
+
     for (const news of allNews) {
       const key = this.generateDeduplicationKey(news.title);
-      
-      if (!uniqueNews.has(key) || 
-          uniqueNews.get(key)!.credibilityScore < news.credibilityScore) {
+
+      if (
+        !uniqueNews.has(key) ||
+        uniqueNews.get(key)!.credibilityScore < news.credibilityScore
+      ) {
         uniqueNews.set(key, news);
       }
     }
@@ -709,12 +803,13 @@ export class NewsAggregator {
       .sort((a, b) => {
         const scoreA = a.importanceScore * 0.6 + a.credibilityScore * 0.4;
         const scoreB = b.importanceScore * 0.6 + b.credibilityScore * 0.4;
-        
+
         if (scoreA !== scoreB) {
           return scoreB - scoreA; // 高分在前
         }
-        
-        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(); // 新的在前
+
+        return new Date(b.publishedAt).getTime() -
+          new Date(a.publishedAt).getTime(); // 新的在前
       });
   }
 
@@ -725,8 +820,8 @@ export class NewsAggregator {
     return title.toLowerCase()
       .replace(/[^a-zA-Z0-9\s]/g, '')
       .split(' ')
-      .filter(word => word.length > 3)
+      .filter((word) => word.length > 3)
       .slice(0, 5)
       .join('_');
   }
-} 
+}

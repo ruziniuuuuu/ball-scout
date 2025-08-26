@@ -47,7 +47,9 @@ export class AutoNewsCrawler {
 
     console.log('🚀 启动自动化新闻爬取服务...');
     console.log(`📅 爬取间隔: 每${this.config.interval}分钟`);
-    console.log(`🌐 翻译服务: ${this.config.enableTranslation ? '已启用' : '已禁用'}`);
+    console.log(
+      `🌐 翻译服务: ${this.config.enableTranslation ? '已启用' : '已禁用'}`,
+    );
 
     this.isRunning = true;
 
@@ -56,7 +58,7 @@ export class AutoNewsCrawler {
 
     // 设置定时任务
     this.cronJob = cron(`*/${this.config.interval} * * * *`, () => {
-      this.runCrawl().catch(error => {
+      this.runCrawl().catch((error) => {
         console.error('❌ 定时爬取任务执行失败:', error);
       });
     });
@@ -74,7 +76,7 @@ export class AutoNewsCrawler {
     }
 
     console.log('🛑 停止自动化新闻爬取服务...');
-    
+
     if (this.cronJob) {
       this.cronJob.stop();
       this.cronJob = null;
@@ -95,25 +97,29 @@ export class AutoNewsCrawler {
       // 1. 获取最新新闻
       console.log('📡 正在获取最新新闻...');
       const allNews = await this.aggregator.fetchAllNews();
-      
+
       if (allNews.length === 0) {
         console.log('⚠️ 未获取到新闻，跳过本次任务');
         return;
       }
 
       // 2. 过滤新的新闻（避免重复处理）
-      const newNews = allNews.filter(news => !this.processedNewsCache.has(news.id));
-      
+      const newNews = allNews.filter((news) =>
+        !this.processedNewsCache.has(news.id)
+      );
+
       if (newNews.length === 0) {
         console.log('✅ 无新的新闻需要处理');
         return;
       }
 
-      console.log(`📊 获取到 ${allNews.length} 条新闻，其中 ${newNews.length} 条为新新闻`);
+      console.log(
+        `📊 获取到 ${allNews.length} 条新闻，其中 ${newNews.length} 条为新新闻`,
+      );
 
       // 3. 限制处理数量
       const newsToProcess = newNews.slice(0, this.config.maxNewsPerRun);
-      
+
       // 4. 翻译新闻
       if (this.config.enableTranslation) {
         console.log('🤖 开始翻译新闻...');
@@ -133,7 +139,7 @@ export class AutoNewsCrawler {
       }
 
       // 7. 更新缓存
-      newsToProcess.forEach(news => {
+      newsToProcess.forEach((news) => {
         this.processedNewsCache.add(news.id);
       });
 
@@ -141,15 +147,18 @@ export class AutoNewsCrawler {
       if (this.processedNewsCache.size > 1000) {
         const cacheArray = Array.from(this.processedNewsCache);
         this.processedNewsCache.clear();
-        cacheArray.slice(-800).forEach(id => this.processedNewsCache.add(id));
+        cacheArray.slice(-800).forEach((id) => this.processedNewsCache.add(id));
       }
 
       this.lastRunTime = new Date();
       const duration = (Date.now() - startTime) / 1000;
-      
-      console.log(`✅ 爬取任务完成！`);
-      console.log(`📊 处理了 ${newsToProcess.length} 条新闻，耗时 ${duration.toFixed(2)}s`);
 
+      console.log(`✅ 爬取任务完成！`);
+      console.log(
+        `📊 处理了 ${newsToProcess.length} 条新闻，耗时 ${
+          duration.toFixed(2)
+        }s`,
+      );
     } catch (error) {
       console.error('❌ 爬取任务执行失败:', error);
     }
@@ -159,7 +168,7 @@ export class AutoNewsCrawler {
    * 翻译新闻内容
    */
   private async translateNews(newsList: ProcessedNewsItem[]): Promise<void> {
-    const needsTranslation = newsList.filter(news => 
+    const needsTranslation = newsList.filter((news) =>
       news.originalLanguage !== 'zh' && !news.isTranslated
     );
 
@@ -172,16 +181,16 @@ export class AutoNewsCrawler {
 
     // 批量处理翻译
     const batchSize = 5; // 控制并发数量
-    
+
     for (let i = 0; i < needsTranslation.length; i += batchSize) {
       const batch = needsTranslation.slice(i, i + batchSize);
-      const promises = batch.map(news => this.translateSingleNews(news));
-      
+      const promises = batch.map((news) => this.translateSingleNews(news));
+
       await Promise.allSettled(promises);
-      
+
       // 防止API频率限制
       if (i + batchSize < needsTranslation.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
 
@@ -229,7 +238,6 @@ export class AutoNewsCrawler {
       news.language = 'zh-CN';
 
       console.log(`✅ 翻译完成: ${news.title.substring(0, 50)}...`);
-
     } catch (error) {
       console.error(`❌ 翻译失败: ${news.title.substring(0, 50)}...`, error);
       // 翻译失败时保留原文
@@ -245,7 +253,7 @@ export class AutoNewsCrawler {
     // 这里应该实现真正的数据库保存逻辑
     // 暂时只是日志输出
     console.log(`📊 模拟保存 ${newsList.length} 条新闻到数据库`);
-    
+
     for (const news of newsList) {
       console.log(`💾 [${news.category}] ${news.title.substring(0, 50)}...`);
     }
@@ -254,10 +262,12 @@ export class AutoNewsCrawler {
   /**
    * 生成静态页面
    */
-  private async generateStaticPages(newsList: ProcessedNewsItem[]): Promise<void> {
+  private async generateStaticPages(
+    newsList: ProcessedNewsItem[],
+  ): Promise<void> {
     // 这里将实现静态页面生成逻辑
     console.log(`📄 准备生成 ${newsList.length} 条新闻的静态页面`);
-    
+
     // 创建静态页面目录
     try {
       await Deno.mkdir('./static/news', { recursive: true });
@@ -267,7 +277,7 @@ export class AutoNewsCrawler {
 
     // 生成主页
     await this.generateMainPage(newsList);
-    
+
     // 生成新闻详情页
     for (const news of newsList) {
       await this.generateNewsPage(news);
@@ -309,20 +319,30 @@ export class AutoNewsCrawler {
         </div>
         
         <div class="news-grid">
-            ${newsList.map(news => `
+            ${
+      newsList.map((news) => `
                 <article class="news-card">
-                    ${news.imageUrl ? `<img src="${news.imageUrl}" alt="${news.title}" class="news-image">` : ''}
+                    ${
+        news.imageUrl
+          ? `<img src="${news.imageUrl}" alt="${news.title}" class="news-image">`
+          : ''
+      }
                     <div class="news-content">
                         <h2 class="news-title">${news.title}</h2>
                         <p class="news-summary">${news.summary}</p>
                         <div class="news-meta">
-                            <span class="category">${this.getCategoryName(news.category)}</span>
+                            <span class="category">${
+        this.getCategoryName(news.category)
+      }</span>
                             <span>${news.sourceName}</span>
-                            <span>${new Date(news.publishedAt).toLocaleDateString('zh-CN')}</span>
+                            <span>${
+        new Date(news.publishedAt).toLocaleDateString('zh-CN')
+      }</span>
                         </div>
                     </div>
                 </article>
-            `).join('')}
+            `).join('')
+    }
         </div>
         
         <div class="update-time">
@@ -369,27 +389,43 @@ export class AutoNewsCrawler {
             <h1 class="news-title">${news.title}</h1>
             <div class="news-meta">
                 <span>${news.sourceName}</span> • 
-                <span>${new Date(news.publishedAt).toLocaleString('zh-CN')}</span> • 
+                <span>${
+      new Date(news.publishedAt).toLocaleString('zh-CN')
+    }</span> • 
                 <span>${this.getCategoryName(news.category)}</span>
             </div>
         </div>
         
-        ${news.imageUrl ? `<img src="${news.imageUrl}" alt="${news.title}" class="news-image">` : ''}
+        ${
+      news.imageUrl
+        ? `<img src="${news.imageUrl}" alt="${news.title}" class="news-image">`
+        : ''
+    }
         
         <div class="news-content">
             ${news.translatedContent || news.content}
         </div>
         
-        ${news.tags.length > 0 ? `
+        ${
+      news.tags.length > 0
+        ? `
             <div class="tags">
-                ${news.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                ${
+          news.tags.map((tag) => `<span class="tag">${tag}</span>`).join('')
+        }
             </div>
-        ` : ''}
+        `
+        : ''
+    }
         
         <div class="source-info">
             <p>原文链接: <a href="${news.url}" target="_blank">${news.url}</a></p>
-            ${news.isTranslated ? `<p>翻译提供者: ${news.translationProvider}</p>` : ''}
-            <p>置信度评分: ${news.credibilityScore.toFixed(2)} | 重要性评分: ${news.importanceScore}/5</p>
+            ${
+      news.isTranslated ? `<p>翻译提供者: ${news.translationProvider}</p>` : ''
+    }
+            <p>置信度评分: ${
+      news.credibilityScore.toFixed(2)
+    } | 重要性评分: ${news.importanceScore}/5</p>
         </div>
     </div>
 </body>
@@ -429,4 +465,4 @@ export class AutoNewsCrawler {
 }
 
 // 创建全局实例
-export const autoNewsCrawler = new AutoNewsCrawler(); 
+export const autoNewsCrawler = new AutoNewsCrawler();

@@ -1,4 +1,8 @@
-import { TranslationRequest, TranslationResult, TranslationProvider } from './types.ts';
+import {
+  TranslationProvider,
+  TranslationRequest,
+  TranslationResult,
+} from './types.ts';
 import { DeepSeekTranslationProvider } from './providers/deepseek.ts';
 import { ClaudeTranslationProvider } from './providers/claude.ts';
 import { OpenAITranslationProvider } from './providers/openai.ts';
@@ -7,7 +11,7 @@ import { translationCache } from './cache.ts';
 export class TranslationService {
   private providers: Map<string, any> = new Map();
   private fallbackChain: string[] = ['deepseek', 'claude', 'openai'];
-  
+
   constructor() {
     this.initializeProviders();
   }
@@ -19,13 +23,16 @@ export class TranslationService {
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
 
     if (deepseekKey) {
-      this.providers.set('deepseek', new DeepSeekTranslationProvider(deepseekKey));
+      this.providers.set(
+        'deepseek',
+        new DeepSeekTranslationProvider(deepseekKey),
+      );
     }
-    
+
     if (claudeKey) {
       this.providers.set('claude', new ClaudeTranslationProvider(claudeKey));
     }
-    
+
     if (openaiKey) {
       this.providers.set('openai', new OpenAITranslationProvider(openaiKey));
     }
@@ -39,7 +46,7 @@ export class TranslationService {
     const cached = await translationCache.get(
       request.text,
       request.sourceLanguage,
-      request.targetLanguage
+      request.targetLanguage,
     );
 
     if (cached) {
@@ -59,7 +66,7 @@ export class TranslationService {
 
     // 2. 根据优先级选择提供商
     const selectedProvider = this.selectProvider(request);
-    
+
     if (!selectedProvider) {
       throw new Error('没有可用的翻译提供商');
     }
@@ -71,7 +78,9 @@ export class TranslationService {
 
       // 3. 质量检查
       if (result.qualityScore < 0.6) {
-        console.warn(`⚠️ 翻译质量较低 (${result.qualityScore})，尝试备选提供商...`);
+        console.warn(
+          `⚠️ 翻译质量较低 (${result.qualityScore})，尝试备选提供商...`,
+        );
         return await this.fallbackTranslate(request, selectedProvider);
       }
 
@@ -80,12 +89,13 @@ export class TranslationService {
         request.text,
         result.translatedText,
         request.sourceLanguage,
-        request.targetLanguage
+        request.targetLanguage,
       );
 
-      console.log(`✅ 翻译完成: ${result.model}, 质量: ${result.qualityScore.toFixed(2)}`);
+      console.log(
+        `✅ 翻译完成: ${result.model}, 质量: ${result.qualityScore.toFixed(2)}`,
+      );
       return result;
-
     } catch (error) {
       console.error(`❌ ${selectedProvider} 翻译失败:`, error);
       return await this.fallbackTranslate(request, selectedProvider);
@@ -116,10 +126,10 @@ export class TranslationService {
    */
   private async fallbackTranslate(
     request: TranslationRequest,
-    failedProvider: string
+    failedProvider: string,
   ): Promise<TranslationResult> {
     const availableProviders = this.fallbackChain.filter(
-      p => p !== failedProvider && this.providers.has(p)
+      (p) => p !== failedProvider && this.providers.has(p),
     );
 
     for (const providerName of availableProviders) {
@@ -127,13 +137,13 @@ export class TranslationService {
         console.log(`🔄 备选翻译提供商: ${providerName}`);
         const provider = this.providers.get(providerName);
         const result = await provider.translate(request);
-        
+
         // 保存到缓存
         await translationCache.set(
           request.text,
           result.translatedText,
           request.sourceLanguage,
-          request.targetLanguage
+          request.targetLanguage,
         );
 
         return result;
@@ -150,7 +160,7 @@ export class TranslationService {
    * 批量翻译
    */
   async batchTranslate(
-    requests: TranslationRequest[]
+    requests: TranslationRequest[],
   ): Promise<TranslationResult[]> {
     const results: TranslationResult[] = [];
     const batchSize = 5; // 并发控制
@@ -158,7 +168,7 @@ export class TranslationService {
     for (let i = 0; i < requests.length; i += batchSize) {
       const batch = requests.slice(i, i + batchSize);
       const batchResults = await Promise.allSettled(
-        batch.map(request => this.translate(request))
+        batch.map((request) => this.translate(request)),
       );
 
       for (const result of batchResults) {
@@ -219,20 +229,22 @@ export class TranslationService {
     ];
 
     console.log('🔥 开始预热翻译缓存...');
-    
+
     for (const term of commonFootballTerms) {
       await translationCache.set(
         term.en,
         term.zh,
         'en',
         'zh-CN',
-        7 * 24 * 60 * 60 * 1000 // 7天TTL
+        7 * 24 * 60 * 60 * 1000, // 7天TTL
       );
     }
 
-    console.log(`✅ 缓存预热完成，已添加 ${commonFootballTerms.length} 个常用术语`);
+    console.log(
+      `✅ 缓存预热完成，已添加 ${commonFootballTerms.length} 个常用术语`,
+    );
   }
 }
 
 // 全局翻译服务实例
-export const translationService = new TranslationService(); 
+export const translationService = new TranslationService();

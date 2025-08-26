@@ -1,0 +1,54 @@
+# 球探社后端服务 Dockerfile
+# 基于 Deno 官方镜像构建高性能、安全的生产环境
+
+# 使用官方 Deno 运行时镜像
+FROM denoland/deno:1.40.0
+
+# 设置工作目录
+WORKDIR /app
+
+# 设置环境变量
+ENV DENO_ENV=production
+ENV PORT=8000
+
+# 创建非root用户以提高安全性
+RUN groupadd -r ballscout && useradd -r -g ballscout ballscout
+
+# 复制依赖配置文件
+COPY backend/deps.ts .
+COPY backend/deno.json* .
+COPY backend/deno.lock* .
+
+# 预先下载和缓存依赖项
+RUN deno cache deps.ts
+
+# 复制应用代码
+COPY backend/ .
+
+# 设置目录权限
+RUN chown -R ballscout:ballscout /app
+
+# 切换到非root用户
+USER ballscout
+
+# 缓存应用模块
+RUN deno cache mod.ts
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD deno run --allow-net --no-remote health-check.ts || exit 1
+
+# 暴露端口
+EXPOSE 8000
+
+# 启动命令
+CMD ["deno", "run", \
+     "--allow-net", \
+     "--allow-env", \
+     "--allow-read", \
+     "--allow-write=/tmp", \
+     "--allow-sys=loadavg,osRelease", \
+     "--no-remote", \
+     "--lock=deno.lock", \
+     "--cached-only", \
+     "mod.ts"]

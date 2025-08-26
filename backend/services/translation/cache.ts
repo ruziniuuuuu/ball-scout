@@ -11,7 +11,7 @@ export class TranslationCacheService {
   private generateCacheKey(
     text: string,
     sourceLanguage: string,
-    targetLanguage: string
+    targetLanguage: string,
   ): string {
     const content = `${sourceLanguage}-${targetLanguage}-${text}`;
     // 简单的哈希函数（生产环境应使用更强的哈希算法）
@@ -30,7 +30,7 @@ export class TranslationCacheService {
   async get(
     text: string,
     sourceLanguage: string,
-    targetLanguage: string
+    targetLanguage: string,
   ): Promise<TranslationCache | null> {
     const key = this.generateCacheKey(text, sourceLanguage, targetLanguage);
     const cached = this.cache.get(key);
@@ -60,7 +60,7 @@ export class TranslationCacheService {
     translatedText: string,
     sourceLanguage: string,
     targetLanguage: string,
-    ttl?: number
+    ttl?: number,
   ): Promise<void> {
     const key = this.generateCacheKey(text, sourceLanguage, targetLanguage);
     const expiresAt = new Date(Date.now() + (ttl || this.defaultTTL));
@@ -153,4 +153,4 @@ export class TranslationCacheService {
 }
 
 // 全局缓存实例
-export const translationCache = new TranslationCacheService(); 
+export const translationCache = new TranslationCacheService();

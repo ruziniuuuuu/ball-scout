@@ -44,14 +44,16 @@ translationRouter.post('/api/v1/translate', async (ctx) => {
     };
   } catch (error) {
     console.error('翻译错误:', error);
-    
+
     ctx.response.status = error instanceof z.ZodError ? 400 : 500;
     ctx.response.body = {
       success: false,
       error: {
-        code: error instanceof z.ZodError ? 'VALIDATION_ERROR' : 'TRANSLATION_ERROR',
-        message: error instanceof z.ZodError 
-          ? '请求参数无效' 
+        code: error instanceof z.ZodError
+          ? 'VALIDATION_ERROR'
+          : 'TRANSLATION_ERROR',
+        message: error instanceof z.ZodError
+          ? '请求参数无效'
           : (error as Error).message || '翻译服务暂时不可用',
         details: error instanceof z.ZodError ? error.errors : undefined,
       },
@@ -65,7 +67,7 @@ translationRouter.post('/api/v1/translate/batch', async (ctx) => {
     const body = await ctx.request.body().value;
     const { requests } = batchTranslateSchema.parse(body);
 
-    const translationRequests: TranslationRequest[] = requests.map(req => ({
+    const translationRequests: TranslationRequest[] = requests.map((req) => ({
       text: req.text,
       sourceLanguage: req.sourceLanguage,
       targetLanguage: req.targetLanguage,
@@ -73,28 +75,32 @@ translationRouter.post('/api/v1/translate/batch', async (ctx) => {
       priority: req.priority,
     }));
 
-    const results = await translationService.batchTranslate(translationRequests);
+    const results = await translationService.batchTranslate(
+      translationRequests,
+    );
 
     ctx.response.body = {
       success: true,
       data: results,
       meta: {
         total: results.length,
-        successful: results.filter(r => r.confidence > 0).length,
-        failed: results.filter(r => r.confidence === 0).length,
+        successful: results.filter((r) => r.confidence > 0).length,
+        failed: results.filter((r) => r.confidence === 0).length,
         timestamp: new Date().toISOString(),
       },
     };
   } catch (error) {
     console.error('批量翻译错误:', error);
-    
+
     ctx.response.status = error instanceof z.ZodError ? 400 : 500;
     ctx.response.body = {
       success: false,
       error: {
-        code: error instanceof z.ZodError ? 'VALIDATION_ERROR' : 'BATCH_TRANSLATION_ERROR',
-        message: error instanceof z.ZodError 
-          ? '请求参数无效' 
+        code: error instanceof z.ZodError
+          ? 'VALIDATION_ERROR'
+          : 'BATCH_TRANSLATION_ERROR',
+        message: error instanceof z.ZodError
+          ? '请求参数无效'
           : '批量翻译服务暂时不可用',
         details: error instanceof z.ZodError ? error.errors : undefined,
       },
@@ -106,7 +112,7 @@ translationRouter.post('/api/v1/translate/batch', async (ctx) => {
 translationRouter.get('/api/v1/translate/status', (ctx) => {
   try {
     const status = translationService.getStatus();
-    
+
     ctx.response.body = {
       success: true,
       data: status,
@@ -116,7 +122,7 @@ translationRouter.get('/api/v1/translate/status', (ctx) => {
     };
   } catch (error) {
     console.error('获取状态错误:', error);
-    
+
     ctx.response.status = 500;
     ctx.response.body = {
       success: false,
@@ -132,7 +138,7 @@ translationRouter.get('/api/v1/translate/status', (ctx) => {
 translationRouter.post('/api/v1/translate/warmup', async (ctx) => {
   try {
     await translationService.warmupCache();
-    
+
     ctx.response.body = {
       success: true,
       data: {
@@ -144,7 +150,7 @@ translationRouter.post('/api/v1/translate/warmup', async (ctx) => {
     };
   } catch (error) {
     console.error('缓存预热错误:', error);
-    
+
     ctx.response.status = 500;
     ctx.response.body = {
       success: false,
@@ -194,7 +200,7 @@ translationRouter.get('/api/v1/translate/health', async (ctx) => {
     };
   } catch (error) {
     console.error('健康检查错误:', error);
-    
+
     ctx.response.status = 503;
     ctx.response.body = {
       success: false,
@@ -209,4 +215,4 @@ translationRouter.get('/api/v1/translate/health', async (ctx) => {
   }
 });
 
-export default translationRouter; 
+export default translationRouter;
