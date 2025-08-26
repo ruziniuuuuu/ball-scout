@@ -64,6 +64,11 @@ dev_dependencies:
   # 代码检查
   flutter_lints: ^6.0.0
   
+  # 测试相关
+  mockito: ^5.4.4
+  integration_test:
+    sdk: flutter
+  
   # 图标生成（暂时注释）
   # flutter_launcher_icons: ^0.13.1
 

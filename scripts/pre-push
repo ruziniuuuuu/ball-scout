@@ -1,0 +1,60 @@
+#!/bin/bash
+# 球探社 Git Pre-push Hook
+
+set -e
+
+echo "🚀 运行pre-push检查..."
+
+protected_branches=("main" "master" "production")
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# 检查是否推送到受保护的分支
+for branch in "${protected_branches[@]}"; do
+    if [[ "$current_branch" == "$branch" ]]; then
+        echo "⚠️  正在推送到受保护的分支: $branch"
+        read -p "确认继续推送? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            exit 1
+        fi
+        break
+    fi
+done
+
+# 运行快速测试
+echo "🧪 运行快速测试..."
+
+# 运行Flutter测试
+echo "📱 运行Flutter测试..."
+if ! flutter test > /dev/null 2>&1; then
+    echo "❌ Flutter测试失败"
+    echo "💡 运行 'flutter test' 查看详细信息"
+    exit 1
+fi
+
+# 运行Deno测试
+echo "🦕 运行Deno测试..."
+if ! (cd backend && deno task test > /dev/null 2>&1); then
+    echo "❌ Deno测试失败"
+    echo "💡 运行 'cd backend && deno task test' 查看详细信息"
+    exit 1
+fi
+
+# 检查是否能成功构建
+echo "🔨 检查构建..."
+if ! flutter build web --release > /dev/null 2>&1; then
+    echo "❌ Flutter构建失败"
+    echo "💡 运行 'flutter build web --release' 查看详细信息"
+    exit 1
+fi
+
+# 检查后端类型
+echo "🔍 检查后端类型..."
+if ! (cd backend && deno check **/*.ts > /dev/null 2>&1); then
+    echo "❌ 后端类型检查失败"
+    echo "💡 运行 'cd backend && deno check **/*.ts' 查看详细信息"
+    exit 1
+fi
+
+echo "✅ Pre-push检查通过!"
+echo "🎉 可以安全推送代码"

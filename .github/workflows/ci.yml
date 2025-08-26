@@ -1,0 +1,290 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  FLUTTER_VERSION: '3.16.0'
+  DENO_VERSION: '1.40.0'
+
+jobs:
+  flutter-test:
+    name: Flutter Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+        cache: true
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Verify Flutter installation
+      run: flutter doctor -v
+    
+    - name: Generate code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Analyze Flutter code
+      run: flutter analyze
+    
+    - name: Format check
+      run: flutter format --dry-run --set-exit-if-changed .
+    
+    - name: Run Flutter tests
+      run: flutter test --coverage --reporter=github
+    
+    - name: Upload Flutter coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+        flags: flutter
+        name: flutter-coverage
+    
+    - name: Build Flutter web
+      run: flutter build web --release
+    
+    - name: Build Flutter Android APK
+      run: flutter build apk --release
+
+  deno-test:
+    name: Deno Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ball_scout_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Deno
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: ${{ env.DENO_VERSION }}
+    
+    - name: Verify Deno installation
+      run: deno --version
+    
+    - name: Cache Deno dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/deno
+        key: ${{ runner.os }}-deno-${{ hashFiles('**/deps.ts') }}
+        restore-keys: |
+          ${{ runner.os }}-deno-
+    
+    - name: Check Deno formatting
+      run: cd backend && deno fmt --check
+    
+    - name: Lint Deno code
+      run: cd backend && deno lint
+    
+    - name: Type check Deno code
+      run: cd backend && deno check **/*.ts
+    
+    - name: Run Deno tests
+      run: cd backend && deno task test --coverage=coverage
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ball_scout_test
+        REDIS_URL: redis://localhost:6379
+    
+    - name: Generate coverage report
+      run: cd backend && deno coverage coverage --html
+    
+    - name: Upload Deno coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: backend/coverage
+        flags: deno
+        name: deno-coverage
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [flutter-test, deno-test]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ball_scout_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+    
+    - name: Setup Deno
+      uses: denoland/setup-deno@v1
+      with:
+        deno-version: ${{ env.DENO_VERSION }}
+    
+    - name: Get Flutter dependencies
+      run: flutter pub get
+    
+    - name: Generate Flutter code
+      run: flutter packages pub run build_runner build --delete-conflicting-outputs
+    
+    - name: Start backend server
+      run: |
+        cd backend
+        deno task start &
+        sleep 10
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ball_scout_test
+        REDIS_URL: redis://localhost:6379
+        PORT: 8000
+    
+    - name: Run integration tests
+      run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart
+    
+    - name: Stop backend server
+      run: pkill -f "deno.*mod.ts" || true
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [flutter-test, deno-test]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        target: frontend
+        push: false
+        tags: ball-scout-frontend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Build backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: false
+        tags: ball-scout-backend:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [integration-test, security-scan, docker-build]
+    if: github.ref == 'refs/heads/develop'
+    
+    environment:
+      name: staging
+      url: https://staging.ball-scout.app
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # 这里添加实际的部署脚本
+        
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [integration-test, security-scan, docker-build]
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: production
+      url: https://ball-scout.app
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # 这里添加实际的部署脚本

@@ -1,0 +1,67 @@
+#!/bin/bash
+# 球探社 Git Pre-commit Hook
+
+set -e
+
+echo "🚀 运行pre-commit检查..."
+
+# 检查Flutter代码格式
+echo "📋 检查Flutter代码格式..."
+if ! flutter format --dry-run --set-exit-if-changed . > /dev/null 2>&1; then
+    echo "❌ Flutter代码格式不正确"
+    echo "💡 运行 'flutter format .' 修复格式问题"
+    exit 1
+fi
+
+# 检查Deno代码格式
+echo "📋 检查Deno代码格式..."
+if ! (cd backend && deno fmt --check > /dev/null 2>&1); then
+    echo "❌ Deno代码格式不正确"
+    echo "💡 运行 'cd backend && deno fmt' 修复格式问题"
+    exit 1
+fi
+
+# 运行Flutter分析
+echo "🔍 运行Flutter代码分析..."
+if ! flutter analyze --no-pub > /dev/null 2>&1; then
+    echo "❌ Flutter代码分析发现问题"
+    echo "💡 运行 'flutter analyze' 查看详细信息"
+    exit 1
+fi
+
+# 运行Deno Lint
+echo "🔍 运行Deno代码检查..."
+if ! (cd backend && deno lint > /dev/null 2>&1); then
+    echo "❌ Deno代码检查发现问题"
+    echo "💡 运行 'cd backend && deno lint' 查看详细信息"
+    exit 1
+fi
+
+# 检查是否有敏感信息
+echo "🔐 检查敏感信息..."
+sensitive_files=(
+    "*.key"
+    "*.pem"
+    ".env"
+    "config.ts"
+)
+
+for pattern in "${sensitive_files[@]}"; do
+    if git diff --cached --name-only | grep -E "$pattern" > /dev/null; then
+        echo "❌ 发现可能包含敏感信息的文件: $pattern"
+        echo "💡 请确保敏感信息已被正确处理"
+        exit 1
+    fi
+done
+
+# 检查提交信息中是否包含敏感信息
+if git diff --cached | grep -E "(password|secret|key|token)" -i > /dev/null; then
+    echo "⚠️  提交内容可能包含敏感信息，请仔细检查"
+    read -p "确认继续提交? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        exit 1
+    fi
+fi
+
+echo "✅ Pre-commit检查通过!"
