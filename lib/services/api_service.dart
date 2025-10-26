@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/news.dart';
 import '../models/user.dart';
 import '../models/match.dart';
+import 'api_config.dart';
 
 // API服务Provider
 final apiServiceProvider = Provider<ApiService>((ref) {
@@ -11,11 +13,12 @@ final apiServiceProvider = Provider<ApiService>((ref) {
 
 class ApiService {
   late final Dio _dio;
-  static const String baseUrl = 'http://localhost:8000';
 
   ApiService() {
+    final resolvedBaseUrl = ApiConfig.baseUrl;
+
     _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: resolvedBaseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       headers: {
@@ -95,7 +98,7 @@ class ApiService {
   }) async {
     try {
       final queryParams = <String, dynamic>{};
-      
+
       if (date != null) {
         queryParams['date'] = date.toIso8601String().split('T')[0];
       }
@@ -223,7 +226,7 @@ class ApiService {
           );
       }
     }
-    
+
     return ApiException(
       code: 'UNKNOWN',
       message: error.toString(),
@@ -245,4 +248,4 @@ class ApiException implements Exception {
 
   @override
   String toString() => 'ApiException: $message ($code)';
-} 
+}

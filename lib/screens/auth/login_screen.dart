@@ -134,6 +134,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         ],
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // 游客模式按钮
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          ref
+                              .read(authStateProvider.notifier)
+                              .continueAsGuest();
+                          context.go('/');
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        label: const Text('以游客身份浏览'),
+                      ),
+                    ),
                   ],
                 ),
               ),

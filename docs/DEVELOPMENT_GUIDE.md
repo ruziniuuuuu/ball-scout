@@ -64,9 +64,9 @@ flutter run -d web-server --web-port=3000
 ### 4. 访问地址
 
 - 🌐 **前端应用**: http://localhost:3000
-- 📡 **后端API**: http://localhost:8000
-- 📖 **API文档**: http://localhost:8000/api
-- 💚 **健康检查**: http://localhost:8000/health
+- 📡 **后端API**: http://localhost:8080
+- 📖 **API文档**: http://localhost:8080/api
+- 💚 **健康检查**: http://localhost:8080/health
 - 🗄️ **数据库**: localhost:5432 (用户: postgres, 密码: ballscout123)
 
 ## 🔧 开发流程

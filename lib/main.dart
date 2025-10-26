@@ -114,16 +114,16 @@ class BallScoutApp extends ConsumerWidget {
       ],
       redirect: (context, state) {
         final authService = ref.read(authServiceProvider);
-        final isLoggedIn = authService.isLoggedIn;
+        final hasSession = authService.hasSession;
         final isGoingToLogin = state.matchedLocation == '/login';
 
-        // 如果未登录且不是去登录页面，则重定向到登录页面
-        if (!isLoggedIn && !isGoingToLogin) {
+        // 如果没有任何会话并且不是去登录页面，则重定向到登录页面
+        if (!hasSession && !isGoingToLogin) {
           return '/login';
         }
 
-        // 如果已登录且在登录页面，则重定向到首页
-        if (isLoggedIn && isGoingToLogin) {
+        // 如果已经有会话（登录或游客）且在登录页面，则重定向到首页
+        if (hasSession && isGoingToLogin) {
           return '/';
         }
 

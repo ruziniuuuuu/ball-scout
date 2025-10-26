@@ -15,8 +15,6 @@ import {
   AnalyticsService,
   UserBehavior,
 } from '../services/analytics/analytics-service.ts';
-import { DatabaseManager } from '../shared/db.ts';
-import { RedisManager } from '../shared/db.ts';
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -25,10 +23,16 @@ import { requireAuth } from '../middleware/auth.ts';
 
 const router = new Router({ prefix: '/api/v1/analytics' });
 
-// 初始化分析服务
-const db = new DatabaseManager();
-const redis = new RedisManager();
-const analyticsService = new AnalyticsService(db, redis);
+// 注意：AnalyticsService 依赖 ctx.state.db 与 ctx.state.redis 注入的实例
+
+function getAnalyticsService(ctx: Context) {
+  if (!ctx.state.analyticsService) {
+    const db = ctx.state.db;
+    const redis = ctx.state.redis;
+    ctx.state.analyticsService = new AnalyticsService(db, redis);
+  }
+  return ctx.state.analyticsService as AnalyticsService;
+}
 
 /**
  * POST /api/v1/analytics/track
@@ -37,6 +41,7 @@ const analyticsService = new AnalyticsService(db, redis);
 router.post('/track', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
     const body = await ctx.request.body({ type: 'json' }).value;
 
     const { action, targetType, targetId, metadata } = body;
@@ -96,6 +101,7 @@ router.post('/track', requireAuth, async (ctx: Context) => {
  */
 router.get('/content/:contentId', requireAuth, async (ctx: Context) => {
   try {
+    const analyticsService = getAnalyticsService(ctx);
     const { contentId } = ctx.params;
     const timeRange = ctx.request.url.searchParams.get('timeRange') || '7d';
 
@@ -134,6 +140,7 @@ router.get('/content/:contentId', requireAuth, async (ctx: Context) => {
  */
 router.get('/trending', async (ctx: Context) => {
   try {
+    const analyticsService = getAnalyticsService(ctx);
     const timeWindow = ctx.request.url.searchParams.get('timeWindow') || '24h';
     const limit = parseInt(ctx.request.url.searchParams.get('limit') || '10');
 
@@ -177,6 +184,7 @@ router.get('/trending', async (ctx: Context) => {
 router.get('/user/insights', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
     const insights = await analyticsService.getUserInsights(user.id);
 
     if (!insights) {
@@ -202,6 +210,7 @@ router.get('/user/insights', requireAuth, async (ctx: Context) => {
 router.get('/user/:userId/insights', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
     const { userId } = ctx.params;
 
     // 检查权限：只有管理员或用户本人可以查看
@@ -234,6 +243,7 @@ router.get('/user/:userId/insights', requireAuth, async (ctx: Context) => {
 router.get('/system/metrics', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
 
     // 只有管理员可以查看系统指标
     if (user.role !== 'admin') {
@@ -262,6 +272,7 @@ router.get('/system/metrics', requireAuth, async (ctx: Context) => {
 router.get('/dashboard', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
     const timeWindow = ctx.request.url.searchParams.get('timeWindow') || '24h';
 
     // 并行获取多项数据
@@ -301,6 +312,7 @@ router.get('/dashboard', requireAuth, async (ctx: Context) => {
 router.get('/export', requireAuth, async (ctx: Context) => {
   try {
     const user = ctx.state.user;
+    const analyticsService = getAnalyticsService(ctx);
 
     if (user.role !== 'admin') {
       ctx.response.status = 403;

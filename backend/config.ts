@@ -3,7 +3,7 @@
 
 export const config = {
   // 服务端口
-  port: parseInt(Deno.env.get('PORT') || '8000'),
+  port: parseInt(Deno.env.get('PORT') || '8080'),
 
   // 运行环境
   env: (Deno.env.get('NODE_ENV') || 'development') as
@@ -116,7 +116,7 @@ export const config = {
 
   // CORS配置
   cors: {
-    origin: Deno.env.get('CORS_ORIGIN') || 'http://localhost:3000',
+    origin: Deno.env.get('CORS_ORIGIN') || '*',
     credentials: true,
   },
 

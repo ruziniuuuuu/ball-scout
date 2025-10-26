@@ -4,7 +4,8 @@ import '../models/user.dart';
 import 'api_service.dart';
 
 // 认证状态Provider
-final authStateProvider = StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
+final authStateProvider =
+    StateNotifierProvider<AuthStateNotifier, AuthState>((ref) {
   final apiService = ref.read(apiServiceProvider);
   return AuthStateNotifier(apiService);
 });
@@ -17,6 +18,7 @@ final authServiceProvider = Provider<AuthService>((ref) {
 // 认证状态
 class AuthState {
   final bool isLoggedIn;
+  final bool isGuest;
   final User? user;
   final String? token;
   final bool isLoading;
@@ -24,14 +26,18 @@ class AuthState {
 
   const AuthState({
     this.isLoggedIn = false,
+    this.isGuest = false,
     this.user,
     this.token,
     this.isLoading = false,
     this.error,
   });
 
+  bool get hasSession => isLoggedIn || isGuest;
+
   AuthState copyWith({
     bool? isLoggedIn,
+    bool? isGuest,
     User? user,
     String? token,
     bool? isLoading,
@@ -39,6 +45,7 @@ class AuthState {
   }) {
     return AuthState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      isGuest: isGuest ?? this.isGuest,
       user: user ?? this.user,
       token: token ?? this.token,
       isLoading: isLoading ?? this.isLoading,
@@ -69,12 +76,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         // TODO: 解析用户数据，这里简化处理
         state = state.copyWith(
           isLoggedIn: true,
+          isGuest: false,
           token: token,
         );
       }
-    } catch (e) {
-      // print('加载认证状态失败: $e');
-    }
+    } catch (_) {}
   }
 
   // 保存认证状态
@@ -83,9 +89,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_tokenKey, token);
       await prefs.setString(_userKey, user.toJson().toString());
-    } catch (e) {
-      // print('保存认证状态失败: $e');
-    }
+    } catch (_) {}
   }
 
   // 清除认证状态
@@ -94,14 +98,25 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_tokenKey);
       await prefs.remove(_userKey);
-    } catch (e) {
-      // print('清除认证状态失败: $e');
-    }
+    } catch (_) {}
+  }
+
+  // 游客登录
+  void continueAsGuest() {
+    _apiService.clearAuthToken();
+    state = state.copyWith(
+      isGuest: true,
+      isLoggedIn: false,
+      user: null,
+      token: null,
+      error: null,
+      isLoading: false,
+    );
   }
 
   // 登录
   Future<bool> login(String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, isGuest: false);
 
     try {
       final request = LoginRequest(email: email, password: password);
@@ -112,6 +127,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
       state = state.copyWith(
         isLoggedIn: true,
+        isGuest: false,
         user: response.data.user,
         token: response.data.token,
         isLoading: false,
@@ -129,7 +145,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
   // 注册
   Future<bool> register(String username, String email, String password) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, isGuest: false);
 
     try {
       final request = RegisterRequest(
@@ -144,6 +160,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
       state = state.copyWith(
         isLoggedIn: true,
+        isGuest: false,
         user: response.data.user,
         token: response.data.token,
         isLoading: false,
@@ -164,11 +181,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     _apiService.clearAuthToken();
     await _clearAuthState();
 
-    state = const AuthState(
-      isLoggedIn: false,
-      user: null,
-      token: null,
-    );
+    state = const AuthState();
   }
 
   // 清除错误
@@ -183,19 +196,33 @@ class AuthService {
 
   AuthService(this._ref);
 
-  bool get isLoggedIn => _ref.read(authStateProvider).isLoggedIn;
-  User? get user => _ref.read(authStateProvider).user;
-  String? get token => _ref.read(authStateProvider).token;
+  AuthState get _state => _ref.read(authStateProvider);
+
+  bool get isLoggedIn => _state.isLoggedIn;
+  bool get isGuest => _state.isGuest;
+  bool get hasSession => _state.hasSession;
+  User? get user => _state.user;
+  String? get token => _state.token;
 
   Future<bool> login(String email, String password) async {
     return await _ref.read(authStateProvider.notifier).login(email, password);
   }
 
   Future<bool> register(String username, String email, String password) async {
-    return await _ref.read(authStateProvider.notifier).register(username, email, password);
+    return await _ref
+        .read(authStateProvider.notifier)
+        .register(username, email, password);
   }
 
   Future<void> logout() async {
     await _ref.read(authStateProvider.notifier).logout();
   }
-} 
+
+  void continueAsGuest() {
+    _ref.read(authStateProvider.notifier).continueAsGuest();
+  }
+
+  void clearError() {
+    _ref.read(authStateProvider.notifier).clearError();
+  }
+}

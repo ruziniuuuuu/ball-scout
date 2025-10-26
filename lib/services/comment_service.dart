@@ -1,15 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/comment.dart';
+import 'api_config.dart';
 
 class CommentService {
-  static const String _baseUrl = 'http://localhost:8000/api/v1';
-  final Dio _dio = Dio();
+  late final Dio _dio;
 
   CommentService() {
-    _dio.options.baseUrl = _baseUrl;
-    _dio.options.connectTimeout = const Duration(seconds: 10);
-    _dio.options.receiveTimeout = const Duration(seconds: 10);
+    final apiBase = ApiConfig.join('/api/v1/');
+    _dio = Dio(BaseOptions(
+      baseUrl: apiBase,
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    ));
   }
 
   // 获取评论列表

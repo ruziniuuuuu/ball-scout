@@ -8,6 +8,7 @@ import {
   verifyPassword,
   z,
 } from '../../deps.ts';
+import { requireAuth } from '../../middleware/auth.ts';
 
 export const userRouter = new Router();
 
@@ -197,28 +198,10 @@ userRouter.post('/api/v1/auth/login', async (ctx) => {
   }
 });
 
-// 认证中间件
-async function authMiddleware(ctx: any, next: () => Promise<unknown>) {
-  try {
-    const authorization = ctx.request.headers.get('Authorization');
-    if (!authorization || !authorization.startsWith('Bearer ')) {
-      throw new ServiceError('UNAUTHORIZED', '缺少认证信息', 401);
-    }
-
-    const token = authorization.substring(7);
-    const payload = await verify(token, jwtKey);
-
-    ctx.state.user = payload;
-    await next();
-  } catch (error) {
-    throw new ServiceError('UNAUTHORIZED', '认证失败', 401);
-  }
-}
-
 // GET /api/v1/auth/profile - 获取用户资料
-userRouter.get('/api/v1/auth/profile', authMiddleware, async (ctx) => {
+userRouter.get('/api/v1/auth/profile', requireAuth, async (ctx) => {
   try {
-    const userId = ctx.state.user.sub;
+    const userId = ctx.state.user.id;
     const db = ctx.state.db;
 
     const result = await db.query(
@@ -251,9 +234,9 @@ userRouter.get('/api/v1/auth/profile', authMiddleware, async (ctx) => {
 });
 
 // PUT /api/v1/auth/profile - 更新用户资料
-userRouter.put('/api/v1/auth/profile', authMiddleware, async (ctx) => {
+userRouter.put('/api/v1/auth/profile', requireAuth, async (ctx) => {
   try {
-    const userId = ctx.state.user.sub;
+    const userId = ctx.state.user.id;
     const body = await ctx.request.body().value;
 
     const updateSchema = z.object({

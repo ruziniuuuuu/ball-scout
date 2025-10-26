@@ -172,3 +172,5 @@ export interface AppConfig {
     tongYiApiKey?: string;
   };
 }
+
+export type RecordOf<T> = Record<string, T>;
