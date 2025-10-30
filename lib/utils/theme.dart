@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
 /// 应用主题配置类
-/// 
+///
 /// 提供统一的颜色、样式和动画配置
 /// 支持亮色和暗色主题
 class AppTheme {
-  // 品牌色彩
+  // 品牌色彩 - 现代简约绿色风格
   static const Color primaryGreen = Color(0xFF00C851); // 足球绿
   static const Color primaryGreenDark = Color(0xFF00A041); // 深绿色
   static const Color primaryGreenLight = Color(0xFF4CD964); // 浅绿色
-  static const Color techBlue = Color(0xFF007BFF);     // 科技蓝
+  static const Color techBlue = Color(0xFF007BFF); // 科技蓝
   static const Color accentOrange = Color(0xFFFF6B35); // 强调橙
-  
+
   // 灰度色彩
   static const Color darkGray = Color(0xFF2C3E50);
   static const Color mediumGray = Color(0xFF7F8C8D);
-  static const Color lightGray = Color(0xFFECF0F1);
-  static const Color bgGray = Color(0xFFF8F9FA);
+  static const Color lightGray = Color(0xFFE5E5E5);
+  static const Color bgGray = Color(0xFFFAFAFA);
 
   // 语义化颜色
   static const Color success = Color(0xFF00C851);
@@ -65,7 +65,7 @@ class AppTheme {
         color: darkGray,
       )),
     ),
-    
+
     // 应用栏主题
     appBarTheme: const AppBarTheme(
       centerTitle: true,
@@ -78,7 +78,7 @@ class AppTheme {
         color: darkGray,
       ),
     ),
-    
+
     // 卡片主题
     cardTheme: CardThemeData(
       elevation: 2,
@@ -89,39 +89,39 @@ class AppTheme {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
     ),
-    
+
     // 输入框主题
     inputDecorationTheme: InputDecorationTheme(
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: lightGray),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: lightGray),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: primaryGreen, width: 2),
       ),
       filled: true,
-      fillColor: bgGray,
+      fillColor: Colors.white,
     ),
-    
-    // 按钮主题
+
+    // 按钮主题 - 现代简约风格
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryGreen,
         foregroundColor: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        elevation: 2,
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+        elevation: 0, // 无阴影，更现代
         textStyle: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          letterSpacing: 0.5,
+          letterSpacing: 0.8,
         ),
       ).copyWith(
         overlayColor: WidgetStateProperty.resolveWith<Color>(
@@ -137,7 +137,40 @@ class AppTheme {
         ),
       ),
     ),
-    
+
+    // 文本按钮主题
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: primaryGreen,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    ),
+
+    // 轮廓按钮主题
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryGreen,
+        side: const BorderSide(color: primaryGreen, width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ),
+
     // 文本主题
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
@@ -181,7 +214,7 @@ class AppTheme {
         color: mediumGray,
       ),
     ),
-    
+
     // 底部导航栏
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: Colors.white,
@@ -223,7 +256,7 @@ class AppTheme {
         color: Colors.white70,
       )),
     ),
-    
+
     appBarTheme: const AppBarTheme(
       centerTitle: true,
       elevation: 0,
@@ -235,7 +268,7 @@ class AppTheme {
         color: Colors.white,
       ),
     ),
-    
+
     cardTheme: CardThemeData(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -245,7 +278,70 @@ class AppTheme {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       clipBehavior: Clip.antiAlias,
     ),
-    
+
+    // 按钮主题 - 现代简约风格（暗色主题）
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryGreen,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+        elevation: 0,
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.8,
+        ),
+      ).copyWith(
+        overlayColor: WidgetStateProperty.resolveWith<Color>(
+          (states) {
+            if (states.contains(WidgetState.pressed)) {
+              return primaryGreenDark;
+            }
+            if (states.contains(WidgetState.hovered)) {
+              return primaryGreenLight;
+            }
+            return Colors.transparent;
+          },
+        ),
+      ),
+    ),
+
+    // 文本按钮主题（暗色主题）
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: primaryGreenLight,
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
+        ),
+      ),
+    ),
+
+    // 轮廓按钮主题（暗色主题）
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: primaryGreenLight,
+        side: const BorderSide(color: primaryGreenLight, width: 1.5),
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.8,
+        ),
+      ),
+    ),
+
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
         fontSize: 28,
@@ -292,26 +388,26 @@ class AppTheme {
 
   /// 获取渐变背景
   static LinearGradient get primaryGradient => const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [primaryGreen, primaryGreenDark],
-  );
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [primaryGreen, primaryGreenDark],
+      );
 
   /// 获取卡片阴影
   static List<BoxShadow> get cardShadow => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.08),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
-    ),
-  ];
+        BoxShadow(
+          color: Colors.black.withOpacity(0.08),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ];
 
   /// 获取卡片阴影（悬停状态）
   static List<BoxShadow> get cardShadowHover => [
-    BoxShadow(
-      color: Colors.black.withOpacity(0.12),
-      blurRadius: 12,
-      offset: const Offset(0, 4),
-    ),
-  ];
-} 
+        BoxShadow(
+          color: Colors.black.withOpacity(0.12),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ];
+}

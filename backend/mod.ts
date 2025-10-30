@@ -185,11 +185,7 @@ router.get('/api/v1/news', async (ctx) => {
       data: payload,
       meta: {
         total: meta.total,
-        page: meta.page,
-        limit: meta.limit,
         timestamp: meta.timestamp,
-        translated: meta.translated,
-        language: meta.language,
       },
     };
   } catch (error) {
@@ -319,10 +315,12 @@ router.get('/api/v1/matches', (ctx) => {
     },
   ];
 
-  // 根据日期筛选比赛
+  // 根据日期筛选比赛 - 需要匹配日期（忽略时间）
   const filteredMatches = mockMatches.filter((match) => {
     const matchDate = new Date(match.matchTime);
-    return matchDate.toDateString() === targetDate.toDateString();
+    const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const matchDateOnly = new Date(matchDate.getFullYear(), matchDate.getMonth(), matchDate.getDate());
+    return matchDateOnly.getTime() === targetDateOnly.getTime();
   });
 
   ctx.response.body = {

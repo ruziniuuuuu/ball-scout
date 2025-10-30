@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../services/auth_service.dart';
+import '../../screens/news/favorites_screen.dart';
+import '../../screens/profile/reading_history_screen.dart';
 import '../../utils/theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -36,7 +39,7 @@ class ProfileScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             
             // 统计信息
-            _buildStatsSection(context),
+            _buildStatsSection(context, ref),
             const SizedBox(height: 24),
             
             // 退出登录按钮
@@ -139,25 +142,25 @@ class ProfileScreen extends ConsumerWidget {
         icon: Icons.notifications_none,
         title: '消息通知',
         subtitle: '管理推送和通知设置',
-        onTap: () => _showComingSoon(context, '消息通知'),
+        onTap: () => context.go('/notifications'),
       ),
       _MenuItem(
         icon: Icons.sports_soccer_outlined,
         title: '关注球队',
         subtitle: '管理关注的球队',
-        onTap: () => _showComingSoon(context, '关注球队'),
+        onTap: () => context.go('/followed-teams'),
       ),
       _MenuItem(
         icon: Icons.share_outlined,
         title: '分享应用',
         subtitle: '推荐给朋友',
-        onTap: () => _showComingSoon(context, '分享'),
+        onTap: () => _shareApp(context),
       ),
       _MenuItem(
         icon: Icons.help_outline,
         title: '帮助与反馈',
         subtitle: '使用帮助和问题反馈',
-        onTap: () => _showComingSoon(context, '帮助'),
+        onTap: () => context.go('/help-feedback'),
       ),
     ];
 
@@ -196,7 +199,10 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatsSection(BuildContext context) {
+  Widget _buildStatsSection(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesProvider);
+    final readingStatsAsync = ref.watch(readingStatsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,22 +216,54 @@ class ProfileScreen extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: _buildStatCard(
-                context,
-                icon: Icons.article_outlined,
-                title: '阅读文章',
-                value: '156',
-                color: AppTheme.techBlue,
+              child: readingStatsAsync.when(
+                data: (stats) => _buildStatCard(
+                  context,
+                  icon: Icons.article_outlined,
+                  title: '阅读文章',
+                  value: '${stats.totalCount}',
+                  color: AppTheme.techBlue,
+                ),
+                loading: () => _buildStatCard(
+                  context,
+                  icon: Icons.article_outlined,
+                  title: '阅读文章',
+                  value: '--',
+                  color: AppTheme.techBlue,
+                ),
+                error: (_, __) => _buildStatCard(
+                  context,
+                  icon: Icons.article_outlined,
+                  title: '阅读文章',
+                  value: '0',
+                  color: AppTheme.techBlue,
+                ),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildStatCard(
-                context,
-                icon: Icons.schedule,
-                title: '阅读时长',
-                value: '32h',
-                color: AppTheme.accentOrange,
+              child: readingStatsAsync.when(
+                data: (stats) => _buildStatCard(
+                  context,
+                  icon: Icons.schedule,
+                  title: '阅读时长',
+                  value: stats.totalDurationDescription,
+                  color: AppTheme.accentOrange,
+                ),
+                loading: () => _buildStatCard(
+                  context,
+                  icon: Icons.schedule,
+                  title: '阅读时长',
+                  value: '--',
+                  color: AppTheme.accentOrange,
+                ),
+                error: (_, __) => _buildStatCard(
+                  context,
+                  icon: Icons.schedule,
+                  title: '阅读时长',
+                  value: '0分钟',
+                  color: AppTheme.accentOrange,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -234,7 +272,7 @@ class ProfileScreen extends ConsumerWidget {
                 context,
                 icon: Icons.favorite_outline,
                 title: '收藏数',
-                value: '24',
+                value: '${favorites.length}',
                 color: Colors.pink,
               ),
             ),
@@ -304,9 +342,10 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$feature功能开发中，敬请期待...')),
+  void _shareApp(BuildContext context) {
+    Share.share(
+      '球探社 - 发现真正的足球世界\n\n一款专业的足球媒体聚合应用，提供最新足球资讯、赛程和数据。\n\n立即下载体验！',
+      subject: '推荐球探社App',
     );
   }
 

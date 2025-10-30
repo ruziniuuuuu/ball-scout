@@ -13,6 +13,9 @@ import 'screens/profile/reading_history_screen.dart';
 import 'screens/matches/matches_screen.dart';
 import 'screens/matches/match_detail_screen.dart';
 import 'screens/profile/settings_screen.dart';
+import 'screens/profile/notifications_screen.dart';
+import 'screens/profile/followed_teams_screen.dart';
+import 'screens/profile/help_feedback_screen.dart';
 import 'utils/theme.dart';
 import 'services/auth_service.dart';
 import 'services/theme_service.dart';
@@ -98,6 +101,18 @@ class BallScoutApp extends ConsumerWidget {
             GoRoute(
               path: '/settings',
               builder: (context, state) => const SettingsScreen(),
+            ),
+            GoRoute(
+              path: '/notifications',
+              builder: (context, state) => const NotificationsScreen(),
+            ),
+            GoRoute(
+              path: '/followed-teams',
+              builder: (context, state) => const FollowedTeamsScreen(),
+            ),
+            GoRoute(
+              path: '/help-feedback',
+              builder: (context, state) => const HelpFeedbackScreen(),
             ),
             GoRoute(
               path: '/profile',
