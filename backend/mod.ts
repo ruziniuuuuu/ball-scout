@@ -87,7 +87,7 @@ router.get('/api', (ctx) => {
   ctx.response.body = {
     success: true,
     data: {
-      title: '球探社 API v1.5',
+      title: '速达足球 API v1.5',
       description: '提供足球新闻、比赛数据、用户认证和社区功能的RESTful API',
       version: '1.5.0',
       endpoints: {
@@ -575,7 +575,7 @@ async function startServer() {
     }
 
     // 启动HTTP服务器
-    logger.info('启动球探社后端服务...', {
+    logger.info('启动速达足球后端服务...', {
       environment: config.env,
       port: config.port,
     });

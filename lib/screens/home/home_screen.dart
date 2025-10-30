@@ -7,7 +7,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('球探社'),
+        title: const Text('速达足球'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              '欢迎来到球探社',
+              '欢迎来到速达足球',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -47,4 +47,4 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# 球探社 v1.5 开发环境快速启动
-echo "🏆 球探社 v1.5 开发环境启动中..."
+# 速达足球 v1.5 开发环境快速启动
+echo "🏆 速达足球 v1.5 开发环境启动中..."
 
 # 临时清除代理设置，避免影响本地服务访问
 echo "🔧 临时清除代理设置..."
@@ -40,7 +40,7 @@ case "$1" in
     cd backend && deno task dev
     ;;
   "frontend")
-    echo "📱 启动球探社 Flutter 前端..."
+    echo "📱 启动速达足球 Flutter 前端..."
     if command -v flutter &> /dev/null; then
       echo "使用 Flutter 启动 Web 应用..."
       flutter run -d web-server --web-port=3000 --web-hostname=0.0.0.0
@@ -75,7 +75,7 @@ case "$1" in
     fi
     
     # 启动前端服务
-    echo "📱 启动球探社 Flutter 前端..."
+    echo "📱 启动速达足球 Flutter 前端..."
     if command -v flutter &> /dev/null; then
       echo "使用 Flutter 启动 Web 应用..."
       echo "⚠️  注意：Flutter 应用将在前台运行，需要等待编译完成"
@@ -99,7 +99,7 @@ case "$1" in
     # Flutter应用启动完成后会在前台运行，无需额外输出
     # 如果Flutter未安装，则会输出相关信息
     if command -v flutter &> /dev/null; then
-      echo "🌐 球探社 Flutter 应用: http://localhost:3000"
+      echo "🌐 速达足球 Flutter 应用: http://localhost:3000"
       echo "📡 后端API: http://localhost:8000" 
       echo "🗄️ 数据库: localhost:5432"
       echo ""

@@ -295,7 +295,7 @@ export class AutoNewsCrawler {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>球探社 - 最新足球资讯</title>
+    <title>速达足球 - 最新足球资讯</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; }
@@ -314,7 +314,7 @@ export class AutoNewsCrawler {
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚽ 球探社</h1>
+            <h1>⚽ 速达足球</h1>
             <p>全球足球资讯，AI智能翻译</p>
         </div>
         
@@ -366,7 +366,7 @@ export class AutoNewsCrawler {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${news.title} - 球探社</title>
+    <title>${news.title} - 速达足球</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
         .container { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }

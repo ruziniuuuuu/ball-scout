@@ -29,13 +29,13 @@ void main() async {
 
   runApp(
     const ProviderScope(
-      child: BallScoutApp(),
+      child: SodaApp(),
     ),
   );
 }
 
-class BallScoutApp extends ConsumerWidget {
-  const BallScoutApp({super.key});
+class SodaApp extends ConsumerWidget {
+  const SodaApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -147,7 +147,7 @@ class BallScoutApp extends ConsumerWidget {
     );
 
     return MaterialApp.router(
-      title: '球探社',
+      title: '速达足球',
       theme: AppTheme.lightTheme.copyWithFontSize(fontSize),
       darkTheme: AppTheme.darkTheme.copyWithFontSize(fontSize),
       themeMode: themeMode,
@@ -166,7 +166,7 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('球探社'),
+        title: const Text('速达足球'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -187,7 +187,7 @@ class HomeTab extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              '欢迎来到球探社',
+              '欢迎来到速达足球',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

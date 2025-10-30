@@ -1,5 +1,5 @@
-name: ball_scout
-description: 球探社 - 中国最纯净的足球资讯聚合平台
+name: soda
+description: 速达足球 - 中国最纯净的足球资讯聚合平台
 publish_to: 'none'
 version: 1.1.0+1
 
@@ -97,14 +97,14 @@ flutter:
 # flutter_launcher_icons:
 #   android: "launcher_icon"
 #   ios: true
-#   image_path: "assets/icon/ball_scout_icon.png"
+#   image_path: "assets/icon/soda_icon.png"
 #   min_sdk_android: 21
 #   web:
 #     generate: true
-#     image_path: "assets/icon/ball_scout_icon.png"
+#     image_path: "assets/icon/soda_icon.png"
 #     background_color: "#hexcode"
 #     theme_color: "#hexcode"
 #   windows:
 #     generate: true
-#     image_path: "assets/icon/ball_scout_icon.png"
+#     image_path: "assets/icon/soda_icon.png"
 #     icon_size: 48 

@@ -9,7 +9,7 @@ import '../../widgets/loading_states.dart';
 import '../../utils/theme.dart';
 
 /// 增强版主页
-/// 
+///
 /// 特性：
 /// - 今日热门新闻
 /// - 即将开始的比赛
@@ -64,7 +64,7 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
             ),
             const SizedBox(width: 8),
             const Text(
-              '球探社',
+              '速达足球',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -144,8 +144,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
             Text(
               '今日概览',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -240,8 +240,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
                 Text(
                   '🔥 热门新闻',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 TextButton(
                   onPressed: () => context.go('/news'),
@@ -464,8 +464,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
                 Text(
                   '⚽ 即将开始',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 TextButton(
                   onPressed: () => context.go('/matches'),
@@ -488,9 +488,10 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
                   );
                 }
                 return Column(
-                  children: matches.take(3).map((match) =>
-                    _buildMatchCard(context, match)
-                  ).toList(),
+                  children: matches
+                      .take(3)
+                      .map((match) => _buildMatchCard(context, match))
+                      .toList(),
                 );
               },
             ),
@@ -521,8 +522,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
                   Text(
                     match.homeTeam,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                     textAlign: TextAlign.right,
                   ),
                   if (match.homeScore != null)
@@ -560,8 +561,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
                   Text(
                     match.awayTeam,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   if (match.awayScore != null)
                     Text(
@@ -584,11 +585,12 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
   Widget _buildMatchStatus(Match match) {
     Color statusColor;
     String statusText;
-    
+
     switch (match.status) {
       case 'scheduled':
         statusColor = AppTheme.techBlue;
-        statusText = '${match.matchTime.hour}:${match.matchTime.minute.toString().padLeft(2, '0')}';
+        statusText =
+            '${match.matchTime.hour}:${match.matchTime.minute.toString().padLeft(2, '0')}';
         break;
       case 'live':
         statusColor = Colors.red;
@@ -630,8 +632,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
             Text(
               '💡 为你推荐',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 12),
             _buildQuickActions(context),
@@ -656,12 +658,14 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
       childAspectRatio: 3,
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
-      children: actions.map((action) => _buildActionButton(
-        context,
-        action['icon'] as IconData,
-        action['label'] as String,
-        action['route'] as String,
-      )).toList(),
+      children: actions
+          .map((action) => _buildActionButton(
+                context,
+                action['icon'] as IconData,
+                action['label'] as String,
+                action['route'] as String,
+              ))
+          .toList(),
     );
   }
 
@@ -692,8 +696,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
             Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           ],
         ),
@@ -737,8 +741,8 @@ class _EnhancedHomeScreenState extends ConsumerState<EnhancedHomeScreen> {
             Text(
               '通知',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 16),
             const Expanded(
@@ -765,5 +769,8 @@ final hotNewsProvider = FutureProvider<List<News>>((ref) async {
 final upcomingMatchesProvider = FutureProvider<List<Match>>((ref) async {
   final apiService = ref.read(apiServiceProvider);
   final response = await apiService.getMatches();
-  return response.data.where((match) => match.status == 'scheduled').take(3).toList();
+  return response.data
+      .where((match) => match.status == 'scheduled')
+      .take(3)
+      .toList();
 });

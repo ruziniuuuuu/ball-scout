@@ -1,4 +1,4 @@
-# 球探社开发工具 Makefile
+# 速达足球开发工具 Makefile
 
 # 颜色定义
 BLUE=\033[0;34m
@@ -8,14 +8,14 @@ RED=\033[0;31m
 NC=\033[0m # No Color
 
 # 项目信息
-PROJECT_NAME=ball-scout
+PROJECT_NAME=soda
 FRONTEND_DIR=.
 BACKEND_DIR=backend
 
 # 默认目标
 .PHONY: help
 help: ## 显示帮助信息
-	@echo "$(BLUE)球探社开发工具$(NC)"
+	@echo "$(BLUE)速达足球开发工具$(NC)"
 	@echo ""
 	@echo "可用命令："
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(YELLOW)%-20s$(NC) %s\n", $$1, $$2}'
@@ -23,7 +23,7 @@ help: ## 显示帮助信息
 # 环境设置
 .PHONY: setup
 setup: ## 设置开发环境
-	@echo "$(BLUE)设置球探社开发环境...$(NC)"
+	@echo "$(BLUE)设置速达足球开发环境...$(NC)"
 	@echo "检查依赖..."
 	@which flutter > /dev/null || (echo "$(RED)Flutter未安装$(NC)" && exit 1)
 	@which deno > /dev/null || (echo "$(RED)Deno未安装$(NC)" && exit 1)
@@ -42,7 +42,7 @@ deps: ## 安装项目依赖
 # 开发服务器
 .PHONY: dev
 dev: ## 启动完整开发环境
-	@echo "$(BLUE)启动球探社开发环境...$(NC)"
+	@echo "$(BLUE)启动速达足球开发环境...$(NC)"
 	@echo "启动数据库服务..."
 	docker-compose -f docker-compose.dev.yml up -d postgres redis
 	@echo "等待数据库就绪..."
@@ -124,7 +124,7 @@ test-integration: ## 运行集成测试
 test-coverage: ## 生成测试覆盖率报告
 	@echo "$(BLUE)生成测试覆盖率报告...$(NC)"
 	flutter test --coverage
-	genhtml coverage/lcov.info -o coverage/html --title "球探社前端测试覆盖率"
+	genhtml coverage/lcov.info -o coverage/html --title "速达足球前端测试覆盖率"
 	cd $(BACKEND_DIR) && deno task test --coverage=coverage
 	cd $(BACKEND_DIR) && deno coverage coverage --html
 	@echo "$(GREEN)覆盖率报告已生成$(NC)"
@@ -148,7 +148,7 @@ build-frontend: ## 构建Flutter应用
 .PHONY: build-backend
 build-backend: ## 编译Deno后端
 	@echo "$(BLUE)编译Deno后端...$(NC)"
-	cd $(BACKEND_DIR) && deno compile --allow-net --allow-read --allow-env --output ../build/ball-scout-backend mod.ts
+	cd $(BACKEND_DIR) && deno compile --allow-net --allow-read --allow-env --output ../build/soda-backend mod.ts
 	@echo "$(GREEN)后端编译完成$(NC)"
 
 # 代码生成
@@ -196,21 +196,21 @@ db-setup: ## 设置数据库
 	docker-compose -f docker-compose.dev.yml up -d postgres
 	@sleep 5
 	@echo "初始化数据库结构..."
-	@docker exec -i $$(docker-compose -f docker-compose.dev.yml ps -q postgres) psql -U postgres -d ball_scout < scripts/setup-database.sql
+	@docker exec -i $$(docker-compose -f docker-compose.dev.yml ps -q postgres) psql -U postgres -d soda < scripts/setup-database.sql
 	@echo "$(GREEN)数据库设置完成$(NC)"
 
 .PHONY: db-reset
 db-reset: ## 重置数据库
 	@echo "$(BLUE)重置数据库...$(NC)"
 	docker-compose -f docker-compose.dev.yml down postgres
-	docker volume rm ball-scout_postgres_data || true
+	docker volume rm soda_postgres_data || true
 	$(MAKE) db-setup
 	@echo "$(GREEN)数据库重置完成$(NC)"
 
 .PHONY: db-shell
 db-shell: ## 进入数据库Shell
 	@echo "$(BLUE)进入数据库Shell...$(NC)"
-	docker exec -it $$(docker-compose -f docker-compose.dev.yml ps -q postgres) psql -U postgres -d ball_scout
+	docker exec -it $$(docker-compose -f docker-compose.dev.yml ps -q postgres) psql -U postgres -d soda
 
 # 实用工具
 .PHONY: clean
@@ -299,7 +299,7 @@ perf-test: ## 运行性能测试
 # 帮助信息
 .PHONY: info
 info: ## 显示项目信息
-	@echo "$(BLUE)球探社项目信息$(NC)"
+	@echo "$(BLUE)速达足球项目信息$(NC)"
 	@echo ""
 	@echo "项目名称: $(PROJECT_NAME)"
 	@echo "前端技术: Flutter"

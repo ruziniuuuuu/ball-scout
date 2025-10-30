@@ -1,4 +1,4 @@
-# 球探社后端服务 Dockerfile
+# 速达足球后端服务 Dockerfile
 # 基于 Deno 官方镜像构建高性能、安全的生产环境
 
 # 使用官方 Deno 运行时镜像
@@ -12,7 +12,7 @@ ENV DENO_ENV=production
 ENV PORT=8000
 
 # 创建非root用户以提高安全性
-RUN groupadd -r ballscout && useradd -r -g ballscout ballscout
+RUN groupadd -r soda && useradd -r -g soda soda
 
 # 复制依赖配置文件
 COPY backend/deps.ts .
@@ -26,10 +26,10 @@ RUN deno cache deps.ts
 COPY backend/ .
 
 # 设置目录权限
-RUN chown -R ballscout:ballscout /app
+RUN chown -R soda:soda /app
 
 # 切换到非root用户
-USER ballscout
+USER soda
 
 # 缓存应用模块
 RUN deno cache mod.ts

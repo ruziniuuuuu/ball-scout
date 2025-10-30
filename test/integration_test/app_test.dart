@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:ball_scout/main.dart' as app;
+import 'package:soda/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  group('球探社应用集成测试', () {
+  group('速达足球应用集成测试', () {
     testWidgets('完整用户流程测试', (WidgetTester tester) async {
       // 启动应用
       app.main();
       await tester.pumpAndSettle();
 
       // 测试应用启动
-      expect(find.text('球探社'), findsOneWidget);
+      expect(find.text('速达足球'), findsOneWidget);
       
       // 等待应用完全加载
       await tester.pumpAndSettle(const Duration(seconds: 2));

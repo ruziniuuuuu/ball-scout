@@ -1,5 +1,5 @@
 #!/bin/bash
-# 球探社 Git Pre-push Hook
+# 速达足球 Git Pre-push Hook
 
 set -e
 

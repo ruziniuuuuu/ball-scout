@@ -1,4 +1,4 @@
-# 球探社后端 Dockerfile
+# 速达足球后端 Dockerfile
 # 基于 Deno 官方镜像
 
 FROM denoland/deno:1.44.0

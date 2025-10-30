@@ -1,6 +1,6 @@
 {
-    "name": "ball_scout",
-    "short_name": "ball_scout",
+    "name": "速达足球",
+    "short_name": "速达足球",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

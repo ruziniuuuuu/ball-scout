@@ -77,11 +77,11 @@ class HelpFeedbackScreen extends StatelessWidget {
                 context,
                 icon: Icons.email_outlined,
                 title: '发送邮件',
-                subtitle: 'feedback@ballscout.com',
+                subtitle: 'feedback@soda.app',
                 onTap: () async {
                   final Uri emailUri = Uri(
                     scheme: 'mailto',
-                    path: 'feedback@ballscout.com',
+                    path: 'feedback@soda.app',
                     query: 'subject=用户反馈',
                   );
                   if (await canLaunchUrl(emailUri)) {
@@ -132,7 +132,7 @@ class HelpFeedbackScreen extends StatelessWidget {
               _buildInfoItem(
                 context,
                 label: '版权信息',
-                value: '© 2024 球探社',
+                value: '© 2024 速达足球',
               ),
             ],
           ),
@@ -296,4 +296,3 @@ class HelpFeedbackScreen extends StatelessWidget {
     );
   }
 }
-

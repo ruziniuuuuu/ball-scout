@@ -33,15 +33,15 @@ class ProfileScreen extends ConsumerWidget {
             // 用户信息卡片
             _buildUserInfoCard(context, authState),
             const SizedBox(height: 24),
-            
+
             // 功能菜单
             _buildMenuSection(context, ref),
             const SizedBox(height: 24),
-            
+
             // 统计信息
             _buildStatsSection(context, ref),
             const SizedBox(height: 24),
-            
+
             // 退出登录按钮
             _buildLogoutButton(context, ref),
           ],
@@ -59,7 +59,7 @@ class ProfileScreen extends ConsumerWidget {
             // 头像
             CircleAvatar(
               radius: 40,
-                             backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
+              backgroundColor: AppTheme.primaryGreen.withValues(alpha: 0.1),
               child: authState.user?.avatar != null
                   ? ClipOval(
                       child: Image.network(
@@ -83,30 +83,30 @@ class ProfileScreen extends ConsumerWidget {
                     ),
             ),
             const SizedBox(height: 16),
-            
+
             // 用户名
             Text(
               authState.user?.displayName ?? '用户',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 4),
-            
+
             // 邮箱
             Text(
               authState.user?.email ?? '',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
             ),
             const SizedBox(height: 8),
-            
+
             // 等级标签
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                                 color: AppTheme.primaryGreen.withValues(alpha: 0.1),
+                color: AppTheme.primaryGreen.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -170,8 +170,8 @@ class ProfileScreen extends ConsumerWidget {
         Text(
           '功能菜单',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         Card(
@@ -209,8 +209,8 @@ class ProfileScreen extends ConsumerWidget {
         Text(
           '数据统计',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -303,16 +303,16 @@ class ProfileScreen extends ConsumerWidget {
             Text(
               value,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
             ),
             const SizedBox(height: 4),
             Text(
               title,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+                    color: Colors.grey[600],
+                  ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -344,8 +344,8 @@ class ProfileScreen extends ConsumerWidget {
 
   void _shareApp(BuildContext context) {
     Share.share(
-      '球探社 - 发现真正的足球世界\n\n一款专业的足球媒体聚合应用，提供最新足球资讯、赛程和数据。\n\n立即下载体验！',
-      subject: '推荐球探社App',
+      '速达足球 - 发现真正的足球世界\n\n一款专业的足球媒体聚合应用，提供最新足球资讯、赛程和数据。\n\n立即下载体验！',
+      subject: '推荐速达足球App',
     );
   }
 
@@ -388,4 +388,4 @@ class _MenuItem {
     required this.subtitle,
     required this.onTap,
   });
-} 
+}

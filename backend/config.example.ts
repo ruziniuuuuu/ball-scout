@@ -12,7 +12,7 @@ export const config = {
   database: {
     host: Deno.env.get('DB_HOST') || 'localhost',
     port: parseInt(Deno.env.get('DB_PORT') || '5432'),
-    database: Deno.env.get('DB_NAME') || 'ball_scout',
+    database: Deno.env.get('DB_NAME') || 'soda',
     username: Deno.env.get('DB_USER') || 'postgres',
     password: Deno.env.get('DB_PASSWORD') || 'password',
   },
@@ -91,7 +91,7 @@ export const config = {
 
     // 爬虫配置
     crawler: {
-      userAgent: 'BallScout/1.0 (+https://ballscout.com/bot)',
+      userAgent: 'Soda/1.0 (+https://soda.app/bot)',
       timeout: 10000,
       retries: 3,
       rateLimit: 100, // 每分钟请求数
@@ -121,7 +121,7 @@ export const config = {
     apns: {
       keyId: Deno.env.get('APNS_KEY_ID'),
       teamId: Deno.env.get('APNS_TEAM_ID'),
-      bundleId: 'com.ballscout.app',
+      bundleId: 'com.soda.app',
     },
   },
 

@@ -2,9 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:dio/dio.dart';
-import 'package:ball_scout/services/api_service.dart';
-import 'package:ball_scout/models/news.dart';
-import 'package:ball_scout/models/match.dart';
+import 'package:soda/services/api_service.dart';
+import 'package:soda/models/news.dart';
+import 'package:soda/models/match.dart';
 
 import 'api_service_test.mocks.dart';
 

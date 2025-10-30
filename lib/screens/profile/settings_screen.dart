@@ -37,7 +37,7 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => _showThemeModeDialog(context, ref, themeMode),
                 ),
                 const Divider(height: 1),
-                
+
                 // 字体大小
                 ListTile(
                   leading: const Icon(
@@ -45,7 +45,8 @@ class SettingsScreen extends ConsumerWidget {
                     color: AppTheme.primaryGreen,
                   ),
                   title: const Text('字体大小'),
-                  subtitle: Text('${fontSizeNotifier.fontSizeDisplayName} (${fontSizeNotifier.fontSizePercentage})'),
+                  subtitle: Text(
+                      '${fontSizeNotifier.fontSizeDisplayName} (${fontSizeNotifier.fontSizePercentage})'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showFontSizeDialog(context, ref, fontSize),
                 ),
@@ -74,7 +75,6 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const Divider(height: 1),
-                
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.sports_soccer,
@@ -88,7 +88,6 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const Divider(height: 1),
-                
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.article,
@@ -125,7 +124,6 @@ class SettingsScreen extends ConsumerWidget {
                   },
                 ),
                 const Divider(height: 1),
-                
                 SwitchListTile(
                   secondary: const Icon(
                     Icons.save,
@@ -160,19 +158,17 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => _showClearCacheDialog(context),
                 ),
                 const Divider(height: 1),
-                
                 ListTile(
                   leading: const Icon(
                     Icons.info_outline,
                     color: AppTheme.primaryGreen,
                   ),
-                  title: const Text('关于球探社'),
+                  title: const Text('关于速达足球'),
                   subtitle: const Text('版本信息和开发团队'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => _showAboutDialog(context),
                 ),
                 const Divider(height: 1),
-                
                 ListTile(
                   leading: const Icon(
                     Icons.feedback_outlined,
@@ -207,7 +203,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showThemeModeDialog(BuildContext context, WidgetRef ref, ThemeMode currentMode) {
+  void _showThemeModeDialog(
+      BuildContext context, WidgetRef ref, ThemeMode currentMode) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -255,7 +252,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showFontSizeDialog(BuildContext context, WidgetRef ref, double currentSize) {
+  void _showFontSizeDialog(
+      BuildContext context, WidgetRef ref, double currentSize) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -263,7 +261,7 @@ class SettingsScreen extends ConsumerWidget {
         content: StatefulBuilder(
           builder: (context, setState) {
             double tempSize = currentSize;
-            
+
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -283,7 +281,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // 字体大小滑块
                 Row(
                   children: [
@@ -305,7 +303,7 @@ class SettingsScreen extends ConsumerWidget {
                     const Text('大', style: TextStyle(fontSize: 18)),
                   ],
                 ),
-                
+
                 Text(
                   '${(tempSize * 100).round()}%',
                   style: const TextStyle(
@@ -369,7 +367,7 @@ class SettingsScreen extends ConsumerWidget {
   void _showAboutDialog(BuildContext context) {
     showAboutDialog(
       context: context,
-      applicationName: '球探社',
+      applicationName: '速达足球',
       applicationVersion: '1.2.0',
       applicationIcon: Container(
         width: 64,
@@ -385,7 +383,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
       children: [
-        const Text('球探社是一个现代化的足球资讯聚合平台，为您提供最新的足球新闻、比赛信息和社区交流功能。'),
+        const Text('速达足球是一个现代化的足球资讯聚合平台，为您提供最新的足球新闻、比赛信息和社区交流功能。'),
         const SizedBox(height: 16),
         const Text('开发团队致力于为足球爱好者打造最好的阅读体验。'),
       ],
@@ -397,4 +395,4 @@ class SettingsScreen extends ConsumerWidget {
       SnackBar(content: Text('$feature功能开发中，敬请期待...')),
     );
   }
-} 
+}

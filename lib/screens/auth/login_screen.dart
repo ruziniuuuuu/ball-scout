@@ -87,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      '球探社',
+                      '速达足球',
                       style:
                           Theme.of(context).textTheme.headlineLarge?.copyWith(
                                 color: AppTheme.primaryGreen,

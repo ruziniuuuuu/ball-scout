@@ -1,4 +1,4 @@
-# 球探社前端 Dockerfile
+# 速达足球前端 Dockerfile
 # 多阶段构建，优化生产镜像大小
 
 # 第一阶段：构建环境
@@ -40,8 +40,8 @@ FROM nginx:1.24-alpine
 RUN apk add --no-cache curl
 
 # 创建非root用户
-RUN addgroup -g 1001 -S ballscout && \
-    adduser -S ballscout -u 1001
+RUN addgroup -g 1001 -S soda && \
+    adduser -S soda -u 1001
 
 # 复制构建产物
 COPY --from=builder /app/build/web /usr/share/nginx/html
@@ -52,14 +52,14 @@ COPY nginx-default.conf /etc/nginx/conf.d/default.conf
 
 # 创建必要目录并设置权限
 RUN mkdir -p /var/log/nginx /var/cache/nginx /var/run && \
-    chown -R ballscout:ballscout /var/log/nginx /var/cache/nginx /var/run /usr/share/nginx/html
+    chown -R soda:soda /var/log/nginx /var/cache/nginx /var/run /usr/share/nginx/html
 
 # 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
 # 切换用户
-USER ballscout
+USER soda
 
 # 暴露端口
 EXPOSE 3000

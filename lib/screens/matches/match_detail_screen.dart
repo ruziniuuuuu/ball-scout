@@ -7,7 +7,8 @@ import '../../services/api_service.dart';
 import '../../utils/theme.dart';
 
 // 比赛详情Provider
-final matchDetailProvider = FutureProvider.family<Match, String>((ref, matchId) async {
+final matchDetailProvider =
+    FutureProvider.family<Match, String>((ref, matchId) async {
   final apiService = ref.read(apiServiceProvider);
   return await apiService.getMatchDetail(matchId);
 });
@@ -69,7 +70,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
             Text(error.toString(), style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => ref.invalidate(matchDetailProvider(widget.matchId)),
+              onPressed: () =>
+                  ref.invalidate(matchDetailProvider(widget.matchId)),
               child: const Text('重试'),
             ),
           ],
@@ -96,7 +98,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
             ),
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: () => ref.invalidate(matchDetailProvider(widget.matchId)),
+              onPressed: () =>
+                  ref.invalidate(matchDetailProvider(widget.matchId)),
             ),
           ],
         ),
@@ -154,7 +157,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
             children: [
               // 比赛状态
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _getStatusColor(match.status),
                   borderRadius: BorderRadius.circular(16),
@@ -194,7 +198,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
 
                   // 比分
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
                     child: Column(
                       children: [
                         Text(
@@ -297,8 +302,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
                   Text(
                     '比赛信息',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   _buildInfoRow('比赛状态', match.statusDisplayText),
@@ -324,11 +329,13 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
                     Text(
                       '关键事件',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
-                    ...match.events.take(5).map((event) => _buildEventItem(event)),
+                    ...match.events
+                        .take(5)
+                        .map((event) => _buildEventItem(event)),
                   ],
                 ),
               ),
@@ -341,7 +348,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
 
   Widget _buildEventsTab(Match match) {
     final events = match.events;
-    
+
     if (events.isEmpty) {
       return const Center(
         child: Column(
@@ -380,11 +387,12 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
                   Text(
                     '比分统计',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
-                  _buildStatRow('进球数', '${match.homeScore ?? 0}', '${match.awayScore ?? 0}'),
+                  _buildStatRow('进球数', '${match.homeScore ?? 0}',
+                      '${match.awayScore ?? 0}'),
                   _buildStatRow('角球', '7', '3'),
                   _buildStatRow('黄牌', '2', '1'),
                   _buildStatRow('红牌', '0', '0'),
@@ -405,8 +413,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
                   Text(
                     '技术统计',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
                   _buildStatRow('控球率', '62%', '38%'),
@@ -540,7 +548,8 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
           ),
         ),
         title: Text(event.eventDescription),
-        subtitle: Text('${event.minute}分钟 · ${event.team == 'home' ? '主队' : '客队'}'),
+        subtitle:
+            Text('${event.minute}分钟 · ${event.team == 'home' ? '主队' : '客队'}'),
         trailing: Text(
           "${event.minute}'",
           style: const TextStyle(
@@ -633,7 +642,7 @@ class _MatchDetailScreenState extends ConsumerState<MatchDetailScreen>
       '${match.homeTeam} vs ${match.awayTeam}\n'
       '${match.scoreDisplay}\n'
       '${match.competition} · ${_formatMatchTime(match.matchTime)}\n\n'
-      '来自球探社',
+      '来自速达足球',
       subject: '${match.homeTeam} vs ${match.awayTeam}',
     );
   }
@@ -652,7 +661,8 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => _tabBar.preferredSize.height;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: _tabBar,

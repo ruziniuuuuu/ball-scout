@@ -362,7 +362,7 @@ class _NewsDetailWithCommentsScreenState
 
   void _shareNews(News news) {
     Share.share(
-      '${news.title}\n\n${news.summary}\n\n来自球探社',
+      '${news.title}\n\n${news.summary}\n\n来自速达足球',
       subject: news.title,
     );
   }

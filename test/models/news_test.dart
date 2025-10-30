@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:ball_scout/models/news.dart';
+import 'package:soda/models/news.dart';
 
 void main() {
   group('News Model Tests', () {

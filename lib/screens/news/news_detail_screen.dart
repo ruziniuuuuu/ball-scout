@@ -9,7 +9,8 @@ import '../../services/reading_history_service.dart';
 import 'favorites_screen.dart';
 
 // 新闻详情Provider
-final newsDetailProvider = FutureProvider.family<News, String>((ref, newsId) async {
+final newsDetailProvider =
+    FutureProvider.family<News, String>((ref, newsId) async {
   final apiService = ref.read(apiServiceProvider);
   final response = await apiService.getNewsDetail(newsId);
   return response;
@@ -70,10 +71,10 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
 
   void _recordReadingHistory(News news) {
     ref.read(readingHistoryProvider.notifier).addNewsRead(
-      news,
-      duration: 0, // 初始时长为0
-      progress: 0.1, // 初始进度为10%（表示开始阅读）
-    );
+          news,
+          duration: 0, // 初始时长为0
+          progress: 0.1, // 初始进度为10%（表示开始阅读）
+        );
   }
 
   @override
@@ -83,12 +84,12 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
       final duration = DateTime.now().difference(_enterTime).inSeconds;
       // 根据停留时间估算阅读进度（这里使用简单的时间推算）
       final progress = (duration / 60).clamp(0.0, 1.0); // 假设1分钟读完
-      
+
       ref.read(readingHistoryProvider.notifier).updateProgress(
-        widget.newsId,
-        progress,
-        duration,
-      );
+            widget.newsId,
+            progress,
+            duration,
+          );
     }
     super.dispose();
   }
@@ -114,9 +115,9 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-                      onPressed: () {
-          ref.invalidate(newsDetailProvider(widget.newsId));
-        },
+              onPressed: () {
+                ref.invalidate(newsDetailProvider(widget.newsId));
+              },
               child: const Text('重试'),
             ),
           ],
@@ -125,7 +126,8 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
     );
   }
 
-  Widget _buildNewsContent(BuildContext context, WidgetRef ref, News news, bool isFavorite) {
+  Widget _buildNewsContent(
+      BuildContext context, WidgetRef ref, News news, bool isFavorite) {
     return CustomScrollView(
       slivers: [
         // 自定义AppBar
@@ -164,7 +166,8 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
                   ? Image.network(
                       news.imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => _buildDefaultBackground(),
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildDefaultBackground(),
                     )
                   : _buildDefaultBackground(),
             ),
@@ -185,7 +188,7 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
             ),
           ],
         ),
-        
+
         // 新闻内容
         SliverToBoxAdapter(
           child: Padding(
@@ -197,16 +200,16 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
                 Text(
                   news.title,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
+                        fontWeight: FontWeight.bold,
+                        height: 1.3,
+                      ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // 新闻元信息
                 _buildNewsMetaInfo(context, news),
                 const SizedBox(height: 20),
-                
+
                 // 新闻摘要
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -221,30 +224,30 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
                   child: Text(
                     news.summary,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      height: 1.5,
-                    ),
+                          fontWeight: FontWeight.w500,
+                          height: 1.5,
+                        ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
                 // 新闻正文
                 if (news.content != null) ...[
                   Text(
                     '正文内容',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   _buildNewsText(context, news.content!),
                 ],
-                
+
                 const SizedBox(height: 32),
-                
+
                 // 操作按钮
                 _buildActionButtons(context, ref, news, isFavorite),
-                
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -282,13 +285,13 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
         .replaceAll(RegExp(r'<[^>]*>'), '') // 移除HTML标签
         .replaceAll('&nbsp;', ' ')
         .trim();
-        
+
     return Text(
       plainText,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-        height: 1.6,
-        fontSize: 16,
-      ),
+            height: 1.6,
+            fontSize: 16,
+          ),
     );
   }
 
@@ -312,7 +315,7 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        
+
         // 来源
         Icon(
           Icons.article,
@@ -323,12 +326,12 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
         Text(
           news.source,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
         ),
         const Spacer(),
-        
+
         // 阅读数
         Icon(
           Icons.visibility,
@@ -339,16 +342,15 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
         Text(
           '${news.readCount}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey[600],
-          ),
+                color: Colors.grey[600],
+              ),
         ),
       ],
     );
   }
 
-
-
-  Widget _buildActionButtons(BuildContext context, WidgetRef ref, News news, bool isFavorite) {
+  Widget _buildActionButtons(
+      BuildContext context, WidgetRef ref, News news, bool isFavorite) {
     return Row(
       children: [
         Expanded(
@@ -363,7 +365,7 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child:           ElevatedButton.icon(
+          child: ElevatedButton.icon(
             onPressed: () => _toggleFavorite(context, ref, news, isFavorite),
             icon: Icon(
               isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -397,12 +399,13 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
 
   void _shareNews(News news) {
     Share.share(
-      '${news.title}\n\n${news.summary}\n\n来自球探社',
+      '${news.title}\n\n${news.summary}\n\n来自速达足球',
       subject: news.title,
     );
   }
 
-  void _toggleFavorite(BuildContext context, WidgetRef ref, News news, bool isFavorite) {
+  void _toggleFavorite(
+      BuildContext context, WidgetRef ref, News news, bool isFavorite) {
     if (isFavorite) {
       ref.read(favoritesProvider.notifier).removeFavorite(news.id);
       _showSnackBar(context, '取消收藏');
@@ -423,4 +426,4 @@ class _NewsDetailScreenState extends ConsumerState<NewsDetailScreen> {
       ),
     );
   }
-} 
+}

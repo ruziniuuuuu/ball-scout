@@ -1,4 +1,4 @@
-// 球探社 - 生产配置文件
+// 速达足球 - 生产配置文件
 // 从环境变量加载敏感信息，提供合理的默认值
 
 export const config = {
@@ -15,9 +15,9 @@ export const config = {
   database: {
     host: Deno.env.get('DB_HOST') || 'localhost',
     port: parseInt(Deno.env.get('DB_PORT') || '5432'),
-    database: Deno.env.get('DB_NAME') || 'ball_scout',
+    database: Deno.env.get('DB_NAME') || 'soda',
     username: Deno.env.get('DB_USER') || 'postgres',
-    password: Deno.env.get('DB_PASSWORD') || 'ballscout123',
+    password: Deno.env.get('DB_PASSWORD') || 'soda123',
   },
 
   // Redis配置
@@ -29,7 +29,7 @@ export const config = {
 
   // JWT配置
   jwt: {
-    secret: Deno.env.get('JWT_SECRET') || 'ballscout-jwt-secret-key-2024',
+    secret: Deno.env.get('JWT_SECRET') || 'soda-jwt-secret-key-2024',
     expiresIn: '7d',
   },
 
@@ -94,7 +94,7 @@ export const config = {
 
     // 爬虫配置
     crawler: {
-      userAgent: 'BallScout/1.0 (+https://ballscout.com/bot)',
+      userAgent: 'Soda/1.0 (+https://soda.app/bot)',
       timeout: 10000,
       retries: 3,
       rateLimit: 100,
