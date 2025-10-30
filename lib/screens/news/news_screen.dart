@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/news.dart';
 import '../../services/api_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/loading_states.dart';
+import '../../widgets/app_scaffold.dart';
 
 // 选中的新闻分类Provider
 final selectedCategoryProvider = StateProvider<String?>((ref) => null);
@@ -24,7 +27,7 @@ class NewsScreen extends ConsumerWidget {
     final newsListAsync = ref.watch(newsListProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('足球新闻'),
         actions: [
@@ -49,13 +52,17 @@ class NewsScreen extends ConsumerWidget {
           
           // 新闻列表
           Expanded(
-            child: RefreshIndicator(
+            child: CustomRefreshIndicator(
         onRefresh: () async {
           ref.invalidate(newsListProvider);
         },
         child: newsListAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(),
+          loading: () => ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: 6,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (_, __) => const NewsCardSkeleton(),
           ),
           error: (error, stackTrace) => Center(
             child: Column(
@@ -89,25 +96,10 @@ class NewsScreen extends ConsumerWidget {
           ),
           data: (newsList) {
             if (newsList.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.article_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      '暂无新闻',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
+              return const EmptyStateWidget(
+                icon: Icons.article_outlined,
+                title: '暂无新闻',
+                message: '稍后再试，或下拉刷新',
               );
             }
 
@@ -185,94 +177,106 @@ class NewsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          context.go('/news/${news.id}');
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 新闻标题
-              Text(
-                news.title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
+        onTap: () => context.go('/news/${news.id}'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (news.imageUrl != null && news.imageUrl!.isNotEmpty) ...[
+              Hero(
+                tag: 'news-image-${news.id}',
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: CachedNetworkImage(
+                    imageUrl: news.imageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(color: Colors.grey.shade300),
+                    errorWidget: (context, url, error) => Container(color: Colors.grey.shade300),
+                  ),
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
-              
-              // 新闻摘要
-              Text(
-                news.summary,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                  height: 1.4,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 12),
-              
-              // 新闻元信息
-              Row(
+            ],
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 分类标签
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getCategoryColor(news.category),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      news.categoryDisplayName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  
-                  // 来源
                   Text(
-                    news.source,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
+                    news.title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const Spacer(),
-                  
-                  // 阅读数
+                  const SizedBox(height: 8),
+                  Text(
+                    news.summary,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(
-                        Icons.visibility_outlined,
-                        size: 16,
-                        color: Colors.grey[500],
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _getCategoryColor(news.category),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          news.categoryDisplayName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 8),
                       Text(
-                        _formatReadCount(news.readCount),
+                        news.source,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey[500],
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        news.timeAgoText,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      const Spacer(),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.visibility_outlined,
+                            size: 16,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatReadCount(news.readCount),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
