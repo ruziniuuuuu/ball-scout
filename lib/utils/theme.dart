@@ -18,6 +18,18 @@ class AppTheme {
       seedColor: primaryGreen,
       brightness: Brightness.light,
     ),
+    navigationBarTheme: const NavigationBarThemeData(
+      backgroundColor: Colors.white,
+      indicatorColor: Color(0x1A00C851), // 10% 绿
+      surfaceTintColor: Colors.transparent,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      iconTheme: WidgetStatePropertyAll(IconThemeData(color: darkGray)),
+      labelTextStyle: WidgetStatePropertyAll(TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: darkGray,
+      )),
+    ),
     
     // 应用栏主题
     appBarTheme: const AppBarTheme(
@@ -134,6 +146,18 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryGreen,
       brightness: Brightness.dark,
+    ),
+    navigationBarTheme: const NavigationBarThemeData(
+      backgroundColor: Color(0xFF1A1A1A),
+      indicatorColor: Color(0x3300C851), // 20% 绿
+      surfaceTintColor: Colors.transparent,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      iconTheme: WidgetStatePropertyAll(IconThemeData(color: Colors.white70)),
+      labelTextStyle: WidgetStatePropertyAll(TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: Colors.white70,
+      )),
     ),
     
     appBarTheme: const AppBarTheme(

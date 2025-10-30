@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../models/match.dart';
 import '../../services/api_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/loading_states.dart';
+import '../../widgets/app_scaffold.dart';
 
 // 选中的日期Provider
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -24,7 +26,7 @@ class MatchesScreen extends ConsumerWidget {
     final matchesAsync = ref.watch(matchesProvider);
     final selectedDate = ref.watch(selectedDateProvider);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('赛事'),
         actions: [
@@ -43,15 +45,17 @@ class MatchesScreen extends ConsumerWidget {
           
           // 比赛列表
           Expanded(
-            child: RefreshIndicator(
+            child: CustomRefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(matchesProvider);
               },
               child: matchesAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                loading: () => const LoadingWidget(message: '加载赛程中...'),
+                error: (error, stackTrace) => Center(
+                  child: NetworkStateWidget(
+                    onRetry: () => ref.invalidate(matchesProvider),
+                  ),
                 ),
-                error: (error, stackTrace) => _buildErrorView(context, ref, error),
                 data: (matches) => _buildMatchesList(context, matches),
               ),
             ),
@@ -135,34 +139,10 @@ class MatchesScreen extends ConsumerWidget {
 
   Widget _buildMatchesList(BuildContext context, List<Match> matches) {
     if (matches.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sports_soccer,
-              size: 80,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 24),
-            Text(
-              '当天暂无比赛',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '选择其他日期查看比赛',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.sports_soccer,
+        title: '当天暂无比赛',
+        message: '选择其他日期查看比赛',
       );
     }
 
@@ -216,36 +196,8 @@ class MatchesScreen extends ConsumerWidget {
 
   Widget _buildErrorView(BuildContext context, WidgetRef ref, Object error) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '加载失败',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              ref.invalidate(matchesProvider);
-            },
-            child: const Text('重试'),
-          ),
-        ],
+      child: NetworkStateWidget(
+        onRetry: () => ref.invalidate(matchesProvider),
       ),
     );
   }
