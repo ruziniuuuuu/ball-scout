@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../../models/match.dart';
 import '../../services/api_service.dart';
 import '../../utils/theme.dart';
+import '../../widgets/loading_states.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/animated_card.dart';
 
 // 选中的日期Provider
 final selectedDateProvider = StateProvider<DateTime>((ref) => DateTime.now());
@@ -24,7 +27,7 @@ class MatchesScreen extends ConsumerWidget {
     final matchesAsync = ref.watch(matchesProvider);
     final selectedDate = ref.watch(selectedDateProvider);
 
-    return Scaffold(
+    return AppScaffold(
       appBar: AppBar(
         title: const Text('赛事'),
         actions: [
@@ -40,18 +43,20 @@ class MatchesScreen extends ConsumerWidget {
         children: [
           // 日期选择器
           _buildDateSelector(context, ref, selectedDate),
-          
+
           // 比赛列表
           Expanded(
-            child: RefreshIndicator(
+            child: CustomRefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(matchesProvider);
               },
               child: matchesAsync.when(
-                loading: () => const Center(
-                  child: CircularProgressIndicator(),
+                loading: () => const LoadingWidget(message: '加载赛程中...'),
+                error: (error, stackTrace) => Center(
+                  child: NetworkStateWidget(
+                    onRetry: () => ref.invalidate(matchesProvider),
+                  ),
                 ),
-                error: (error, stackTrace) => _buildErrorView(context, ref, error),
                 data: (matches) => _buildMatchesList(context, matches),
               ),
             ),
@@ -61,9 +66,10 @@ class MatchesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDateSelector(BuildContext context, WidgetRef ref, DateTime selectedDate) {
+  Widget _buildDateSelector(
+      BuildContext context, WidgetRef ref, DateTime selectedDate) {
     final now = DateTime.now();
-    
+
     return Container(
       height: 80,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -75,7 +81,7 @@ class MatchesScreen extends ConsumerWidget {
           final date = now.add(Duration(days: index - 3)); // 前3天到后3天
           final isSelected = _isSameDay(date, selectedDate);
           final isToday = _isSameDay(date, now);
-          
+
           return Container(
             margin: const EdgeInsets.only(right: 8),
             child: InkWell(
@@ -86,15 +92,15 @@ class MatchesScreen extends ConsumerWidget {
               child: Container(
                 width: 70,
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? AppTheme.primaryGreen 
-                      : isToday 
+                  color: isSelected
+                      ? AppTheme.primaryGreen
+                      : isToday
                           ? AppTheme.primaryGreen.withOpacity(0.1)
                           : Colors.transparent,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isSelected 
-                        ? AppTheme.primaryGreen 
+                    color: isSelected
+                        ? AppTheme.primaryGreen
                         : Colors.grey.withOpacity(0.3),
                     width: 1,
                   ),
@@ -106,9 +112,7 @@ class MatchesScreen extends ConsumerWidget {
                       isToday ? '今天' : _getWeekdayName(date.weekday),
                       style: TextStyle(
                         fontSize: 12,
-                        color: isSelected 
-                            ? Colors.white 
-                            : Colors.grey[600],
+                        color: isSelected ? Colors.white : Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -117,9 +121,7 @@ class MatchesScreen extends ConsumerWidget {
                       '${date.month}/${date.day}',
                       style: TextStyle(
                         fontSize: 16,
-                        color: isSelected 
-                            ? Colors.white 
-                            : Colors.black87,
+                        color: isSelected ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -135,40 +137,16 @@ class MatchesScreen extends ConsumerWidget {
 
   Widget _buildMatchesList(BuildContext context, List<Match> matches) {
     if (matches.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sports_soccer,
-              size: 80,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 24),
-            Text(
-              '当天暂无比赛',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              '选择其他日期查看比赛',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.sports_soccer,
+        title: '当天暂无比赛',
+        message: '选择其他日期查看比赛',
       );
     }
 
     // 按赛事分组
     final groupedMatches = _groupMatchesByCompetition(matches);
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: groupedMatches.length,
@@ -203,9 +181,14 @@ class MatchesScreen extends ConsumerWidget {
             ),
             // 该赛事的比赛
             ...(group['matches'] as List<Match>).map((match) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: MatchCard(match: match),
+              return SlideInWidget(
+                delay: Duration(
+                    milliseconds:
+                        (group['matches'] as List<Match>).indexOf(match) * 30),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: MatchCard(match: match),
+                ),
               );
             }).toList(),
           ],
@@ -216,58 +199,32 @@ class MatchesScreen extends ConsumerWidget {
 
   Widget _buildErrorView(BuildContext context, WidgetRef ref, Object error) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.error_outline,
-            size: 64,
-            color: Colors.grey,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            '加载失败',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              ref.invalidate(matchesProvider);
-            },
-            child: const Text('重试'),
-          ),
-        ],
+      child: NetworkStateWidget(
+        onRetry: () => ref.invalidate(matchesProvider),
       ),
     );
   }
 
   List<Map<String, dynamic>> _groupMatchesByCompetition(List<Match> matches) {
     final Map<String, List<Match>> grouped = {};
-    
+
     for (final match in matches) {
       grouped[match.competition] ??= [];
       grouped[match.competition]!.add(match);
     }
-    
-    return grouped.entries.map((entry) => {
-      'competition': entry.key,
-      'matches': entry.value,
-    }).toList();
+
+    return grouped.entries
+        .map((entry) => {
+              'competition': entry.key,
+              'matches': entry.value,
+            })
+        .toList();
   }
 
   bool _isSameDay(DateTime date1, DateTime date2) {
     return date1.year == date2.year &&
-           date1.month == date2.month &&
-           date1.day == date2.day;
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   String _getWeekdayName(int weekday) {
@@ -286,142 +243,131 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // TODO: 跳转到比赛详情页
-          context.go('/match/${match.id}');
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+    return AnimatedCard(
+      onTap: () => context.go('/match/${match.id}'),
+      padding: const EdgeInsets.all(16),
+      borderRadius: 16,
+      child: Column(
+        children: [
+          // 比赛时间和状态
+          Row(
             children: [
-              // 比赛时间和状态
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule,
-                    size: 16,
-                    color: Colors.grey[600],
+              Icon(
+                Icons.schedule,
+                size: 16,
+                color: Colors.grey[600],
+              ),
+              const SizedBox(width: 4),
+              Text(
+                match.statusDisplayText,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: match.isLive ? Colors.red : Colors.grey[600],
+                  fontWeight:
+                      match.isLive ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+              const Spacer(),
+              if (match.isLive)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    match.statusDisplayText,
+                  child: const Text(
+                    'LIVE',
                     style: TextStyle(
-                      fontSize: 12,
-                      color: match.isLive 
-                          ? Colors.red 
-                          : Colors.grey[600],
-                      fontWeight: match.isLive 
-                          ? FontWeight.w600 
-                          : FontWeight.normal,
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const Spacer(),
-                  if (match.isLive)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'LIVE',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              
-              // 主要内容：球队 vs 球队
-              Row(
-                children: [
-                  // 主队
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildTeamLogo(match.homeTeamLogo),
-                        const SizedBox(height: 8),
-                        Text(
-                          match.homeTeam,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // 比分/VS
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
-                        Text(
-                          match.scoreDisplay,
-                          style: TextStyle(
-                            fontSize: match.scoreDisplay == 'VS' ? 16 : 24,
-                            fontWeight: FontWeight.bold,
-                            color: match.isLive 
-                                ? Colors.red 
-                                : AppTheme.primaryGreen,
-                          ),
-                        ),
-                        if (match.venue.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            match.venue,
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  
-                  // 客队
-                  Expanded(
-                    child: Column(
-                      children: [
-                        _buildTeamLogo(match.awayTeamLogo),
-                        const SizedBox(height: 8),
-                        Text(
-                          match.awayTeam,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              
-              // 比赛事件（进球、黄牌等）
-              if (match.events.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildMatchEvents(match.events),
-              ],
+                ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+
+          // 主要内容：球队 vs 球队
+          Row(
+            children: [
+              // 主队
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildTeamLogo(match.homeTeamLogo),
+                    const SizedBox(height: 8),
+                    Text(
+                      match.homeTeam,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              // 比分/VS
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  children: [
+                    Text(
+                      match.scoreDisplay,
+                      style: TextStyle(
+                        fontSize: match.scoreDisplay == 'VS' ? 16 : 24,
+                        fontWeight: FontWeight.bold,
+                        color:
+                            match.isLive ? Colors.red : AppTheme.primaryGreen,
+                      ),
+                    ),
+                    if (match.venue.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        match.venue,
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // 客队
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildTeamLogo(match.awayTeamLogo),
+                    const SizedBox(height: 8),
+                    Text(
+                      match.awayTeam,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // 比赛事件（进球、黄牌等）
+          if (match.events.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _buildMatchEvents(match.events),
+          ],
+        ],
       ),
     );
   }
@@ -442,7 +388,7 @@ class MatchCard extends StatelessWidget {
         ),
       );
     }
-    
+
     return CircleAvatar(
       radius: 24,
       backgroundImage: NetworkImage(logoUrl),
@@ -461,7 +407,7 @@ class MatchCard extends StatelessWidget {
   Widget _buildMatchEvents(List<MatchEvent> events) {
     // 只显示前3个重要事件
     final displayEvents = events.take(3).toList();
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -493,4 +439,4 @@ class MatchCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

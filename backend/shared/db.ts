@@ -1,10 +1,17 @@
 import { Client, ClientOptions, connect } from '../deps.ts';
 import { DatabaseConfig } from './types.ts';
+import { DatabaseError } from './errors.ts';
+import { logger } from './logger.ts';
 
-// PostgreSQL数据库连接管理
+/**
+ * PostgreSQL数据库连接管理
+ * 
+ * 提供连接池管理、查询执行、事务处理等功能
+ */
 export class DatabaseManager {
   private client: Client | null = null;
   private config: ClientOptions;
+  private isConnected = false;
 
   constructor(config: DatabaseConfig) {
     this.config = {
@@ -13,51 +20,166 @@ export class DatabaseManager {
       database: config.database,
       user: config.username,
       password: config.password,
+      // 连接池配置
+      connection: {
+        attempts: 3,
+        interval: 1000,
+      },
     };
   }
 
+  /**
+   * 连接数据库
+   */
   async connect(): Promise<void> {
+    if (this.isConnected && this.client) {
+      logger.warn('数据库已经连接');
+      return;
+    }
+
     try {
       this.client = new Client(this.config);
       await this.client.connect();
-      console.log('✅ PostgreSQL数据库连接成功');
+      this.isConnected = true;
+      logger.info('PostgreSQL数据库连接成功');
     } catch (error) {
-      console.error('❌ PostgreSQL数据库连接失败:', error);
-      throw error;
+      this.isConnected = false;
+      logger.error(
+        'PostgreSQL数据库连接失败',
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      throw new DatabaseError(
+        `数据库连接失败: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined,
+      );
     }
   }
 
+  /**
+   * 断开数据库连接
+   */
   async disconnect(): Promise<void> {
     if (this.client) {
-      await this.client.end();
-      this.client = null;
-      console.log('📴 PostgreSQL数据库连接已关闭');
+      try {
+        await this.client.end();
+        this.isConnected = false;
+        logger.info('PostgreSQL数据库连接已关闭');
+      } catch (error) {
+        logger.error('关闭数据库连接时出错', error instanceof Error ? error : new Error(String(error)));
+      } finally {
+        this.client = null;
+      }
     }
   }
 
+  /**
+   * 检查连接状态
+   */
+  get connected(): boolean {
+    return this.isConnected && this.client !== null;
+  }
+
+  /**
+   * 获取数据库客户端
+   */
   getClient(): Client {
-    if (!this.client) {
-      throw new Error('数据库连接尚未建立，请先调用connect()方法');
+    if (!this.client || !this.isConnected) {
+      throw new DatabaseError('数据库连接尚未建立，请先调用connect()方法');
     }
     return this.client;
   }
 
+  /**
+   * 执行查询
+   * 
+   * @param sql SQL查询语句
+   * @param params 查询参数（防止SQL注入）
+   */
   async query(sql: string, params?: unknown[]): Promise<any> {
+    if (!this.connected) {
+      throw new DatabaseError('数据库未连接');
+    }
+
     const client = this.getClient();
-    return await client.queryObject(sql, params);
+    
+    try {
+      // 参数验证
+      if (params) {
+        this.validateParams(params);
+      }
+
+      const startTime = Date.now();
+      const result = await client.queryObject(sql, params);
+      const duration = Date.now() - startTime;
+
+      // 慢查询警告（超过1秒）
+      if (duration > 1000) {
+        logger.warn(`慢查询检测 (${duration}ms)`, {
+          sql: sql.substring(0, 100),
+        });
+      } else {
+        logger.logQuery(sql, duration, params);
+      }
+
+      return result;
+    } catch (error) {
+      logger.error('数据库查询失败', error instanceof Error ? error : new Error(String(error)), {
+        sql: sql.substring(0, 200),
+      });
+      throw new DatabaseError(
+        `查询执行失败: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined,
+        { sql: sql.substring(0, 200) },
+      );
+    }
   }
 
+  /**
+   * 执行事务
+   * 
+   * @param callback 事务回调函数
+   */
   async transaction<T>(callback: (client: Client) => Promise<T>): Promise<T> {
-    const client = this.getClient();
-    await client.queryObject('BEGIN');
+    if (!this.connected) {
+      throw new DatabaseError('数据库未连接');
+    }
 
+    const client = this.getClient();
+    
     try {
+      await client.queryObject('BEGIN');
       const result = await callback(client);
       await client.queryObject('COMMIT');
       return result;
     } catch (error) {
-      await client.queryObject('ROLLBACK');
-      throw error;
+      try {
+        await client.queryObject('ROLLBACK');
+      } catch (rollbackError) {
+        logger.error('回滚事务失败', rollbackError instanceof Error ? rollbackError : new Error(String(rollbackError)));
+      }
+      throw new DatabaseError(
+        `事务执行失败: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  /**
+   * 参数验证
+   */
+  private validateParams(params: unknown[]): void {
+    for (let i = 0; i < params.length; i++) {
+      const param = params[i];
+      
+      // 检查字符串长度
+      if (typeof param === 'string' && param.length > 100000) {
+        throw new DatabaseError(`参数 ${i} 值过长 (${param.length} 字符)`);
+      }
+      
+      // 检查数组大小
+      if (Array.isArray(param) && param.length > 10000) {
+        throw new DatabaseError(`参数 ${i} 数组过大 (${param.length} 元素)`);
+      }
     }
   }
 }

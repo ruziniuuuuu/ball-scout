@@ -6,9 +6,15 @@ import {
   initializeDatabase,
   RedisManager,
 } from './shared/db.ts';
+import { errorHandler } from './shared/errors.ts';
+import { logger } from './shared/logger.ts';
 
 // 引入各个服务路由
 import enhancedNewsRouter from './services/news/enhanced-router.ts';
+import {
+  aiNewsService,
+  type AiNewsListOptions,
+} from './services/news/ai-service.ts';
 import { userRouter } from './services/user/router.ts';
 import communityRouter from './services/community/router.ts';
 import translationRouter from './services/translation/router.ts';
@@ -26,28 +32,8 @@ const router = new Router();
 const dbManager = new DatabaseManager(config.database);
 const redisManager = new RedisManager(config.redis);
 
-// 错误处理中间件
-app.use(async (ctx, next) => {
-  try {
-    await next();
-  } catch (error) {
-    console.error('❌ 服务器错误:', error);
-
-    ctx.response.status = error.statusCode || 500;
-    ctx.response.body = {
-      success: false,
-      error: {
-        code: error.code || 'INTERNAL_ERROR',
-        message: config.env === 'production'
-          ? '服务器内部错误'
-          : (error as Error).message,
-      },
-      meta: {
-        timestamp: new Date().toISOString(),
-      },
-    };
-  }
-});
+// 统一错误处理中间件（放在最前面）
+app.use(errorHandler);
 
 // 数据库连接中间件
 app.use(async (ctx, next) => {
@@ -60,9 +46,16 @@ app.use(async (ctx, next) => {
 app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
-  const ms = Date.now() - start;
-  console.log(
-    `${ctx.request.method} ${ctx.request.url.pathname} - ${ctx.response.status} (${ms}ms)`,
+  const duration = Date.now() - start;
+  
+  logger.logRequest(
+    ctx.request.method,
+    ctx.request.url.pathname,
+    ctx.response.status,
+    duration,
+    {
+      query: Object.fromEntries(ctx.request.url.searchParams),
+    },
   );
 });
 
@@ -157,79 +150,59 @@ app.use(crawlerRouter.allowedMethods());
 app.use(analyticsRouter.routes());
 app.use(analyticsRouter.allowedMethods());
 
-// 兼容旧的模拟API接口
-router.get('/api/v1/news', (ctx) => {
-  const mockNews = [
-    {
-      id: '1',
-      title: '皇马签下新星前锋',
-      summary:
-        '皇马官方宣布签下年仅19岁的巴西新星前锋，转会费高达8000万欧元。这位年轻球员在上赛季表现出色，被誉为下一个巴西传奇。',
-      source: 'ESPN',
-      category: 'transfer',
-      publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      readCount: 1205,
-      imageUrl: null,
-      content: '皇马官方宣布签下年仅19岁的巴西新星前锋...',
-    },
-    {
-      id: '2',
-      title: '欧冠八强对阵出炉',
-      summary:
-        '2024年欧冠八强抽签结果公布，精彩对决即将上演。曼城对阵巴萨，皇马遭遇拜仁，这些经典对决让球迷期待不已。',
-      source: 'UEFA',
-      category: 'match',
-      publishedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      readCount: 2350,
-      imageUrl: null,
-      content: '2024年欧冠八强抽签结果公布...',
-    },
-    {
-      id: '3',
-      title: 'C罗创造新纪录',
-      summary:
-        '葡萄牙巨星C罗在昨晚的比赛中再次创造历史，成为首位在5届欧洲杯中都有进球的球员。这一纪录彰显了他的持久性和伟大性。',
-      source: 'Goal.com',
-      category: 'news',
-      publishedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-      readCount: 5678,
-      imageUrl: null,
-      content: '葡萄牙巨星C罗在昨晚的比赛中再次创造历史...',
-    },
-    {
-      id: '4',
-      title: '梅西状态分析：年龄不是问题',
-      summary:
-        '尽管已经37岁，梅西在迈阿密国际的表现依然出色。专家分析认为，他的球技和视野没有丝毫衰退迹象。',
-      source: '体坛周报',
-      category: 'analysis',
-      publishedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      readCount: 3421,
-      imageUrl: null,
-      content: '尽管已经37岁，梅西在迈阿密国际的表现依然出色...',
-    },
-    {
-      id: '5',
-      title: '英超积分榜更新',
-      summary:
-        '英超第30轮战罢，曼城继续领跑积分榜，阿森纳紧随其后。利物浦和切尔西之间的争夺也异常激烈。',
-      source: 'BBC Sport',
-      category: 'match',
-      publishedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      readCount: 1876,
-      imageUrl: null,
-      content: '英超第30轮战罢，曼城继续领跑积分榜...',
-    },
-  ];
+router.get('/api/v1/news', async (ctx) => {
+  try {
+    const params = ctx.request.url.searchParams;
+    const page = clampNumber(parseInt(params.get('page') || '1', 10), 1, 1000);
+    const limit = clampNumber(parseInt(params.get('limit') || '20', 10), 1, 100);
+    const category = mapCategory((params.get('category') || 'all').toLowerCase());
+    const language = params.get('language') || 'zh-CN';
+    const translate = params.get('translate') !== 'false';
 
-  ctx.response.body = {
-    success: true,
-    data: mockNews,
-    meta: {
-      total: mockNews.length,
-      timestamp: new Date().toISOString(),
-    },
-  };
+    const { items, meta } = await aiNewsService.getNewsList({
+      page,
+      limit,
+      category,
+      language,
+      translate,
+    });
+
+    const payload = items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      summary: item.summary,
+      source: item.source,
+      category: item.category,
+      publishedAt: item.publishedAt,
+      readCount: item.readCount,
+      imageUrl: item.imageUrl,
+      content: undefined,
+      aiMeta: item.aiMeta,
+    }));
+
+    ctx.response.body = {
+      success: true,
+      data: payload,
+      meta: {
+        total: meta.total,
+        page: meta.page,
+        limit: meta.limit,
+        timestamp: meta.timestamp,
+        translated: meta.translated,
+        language: meta.language,
+      },
+    };
+  } catch (error) {
+    console.error('获取AI新闻列表失败:', error);
+    ctx.response.status = 500;
+    ctx.response.body = {
+      success: false,
+      error: {
+        code: 'AI_NEWS_LIST_ERROR',
+        message: '获取新闻失败，请稍后再试',
+      },
+    };
+  }
 });
 
 // 获取比赛列表
@@ -416,38 +389,69 @@ router.get('/api/v1/matches/:id', (ctx) => {
 });
 
 // 获取单个新闻详情
-router.get('/api/v1/news/:id', (ctx) => {
-  const id = ctx.params.id;
+router.get('/api/v1/news/:id', async (ctx) => {
+  try {
+    const id = ctx.params.id;
+    if (!id) {
+      ctx.response.status = 400;
+      ctx.response.body = {
+        success: false,
+        error: {
+          code: 'MISSING_ID',
+          message: '缺少新闻ID',
+        },
+      };
+      return;
+    }
 
-  // 模拟新闻详情数据
-  const newsDetail = {
-    id,
-    title: '皇马签下新星前锋',
-    summary: '皇马官方宣布签下年仅19岁的巴西新星前锋，转会费高达8000万欧元。',
-    source: 'ESPN',
-    category: 'transfer',
-    publishedAt: new Date().toISOString(),
-    readCount: 1205,
-    imageUrl: null,
-    content: `
-      <h2>皇马官宣签下巴西新星</h2>
-      <p>皇家马德里俱乐部今日官方宣布，成功签下年仅19岁的巴西前锋新星，转会费高达8000万欧元，合同期至2029年。</p>
-      
-      <h3>球员特点</h3>
-      <p>这位年轻球员身高1米85，司职中锋，也可胜任边锋位置。他拥有出色的射门技术和突破能力，被誉为巴西足球的未来之星。</p>
-      
-      <h3>教练评价</h3>
-      <p>皇马主教练安切洛蒂表示："他是一名非常有天赋的年轻球员，我相信他会为皇马带来更多进球和胜利。"</p>
-      
-      <h3>转会详情</h3>
-      <p>据悉，这笔转会谈判历时3个月，皇马击败了巴萨、曼城等多家豪门的竞争。球员将于下周正式加盟球队，参加新赛季的训练。</p>
-    `,
-  };
+    const params = ctx.request.url.searchParams;
+    const translate = params.get('translate') !== 'false';
+    const language = params.get('language') || 'zh-CN';
 
-  ctx.response.body = {
-    success: true,
-    data: newsDetail,
-  };
+    const detail = await aiNewsService.getNewsDetail(id, {
+      translate,
+      language,
+    });
+
+    ctx.response.body = {
+      success: true,
+      data: {
+        id: detail.id,
+        title: detail.title,
+        summary: detail.summary,
+        source: detail.source,
+        category: detail.category,
+        publishedAt: detail.publishedAt,
+        readCount: detail.readCount,
+        imageUrl: detail.imageUrl,
+        content: detail.content,
+        aiMeta: detail.aiMeta,
+        originalTitle: detail.originalTitle,
+        originalSummary: detail.originalSummary,
+        originalContent: detail.originalContent,
+        translatedContent: detail.translatedContent,
+      },
+      meta: {
+        translated: translate && detail.aiMeta.isTranslated,
+        language,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '未知错误';
+    const notFound = message.includes('不存在');
+
+    ctx.response.status = notFound ? 404 : 500;
+    ctx.response.body = {
+      success: false,
+      error: {
+        code: notFound ? 'NEWS_NOT_FOUND' : 'AI_NEWS_DETAIL_ERROR',
+        message: notFound
+          ? '未找到指定新闻'
+          : '获取新闻详情失败，请稍后再试',
+      },
+    };
+  }
 });
 
 // 用户登录API
@@ -530,49 +534,71 @@ router.post('/api/v1/auth/register', async (ctx) => {
   }
 });
 
+function clampNumber(value: number, min: number, max: number): number {
+  if (Number.isNaN(value)) return min;
+  return Math.max(min, Math.min(max, value));
+}
+
+function mapCategory(value: string): AiNewsListOptions['category'] {
+  const allowed: Array<AiNewsListOptions['category']> = [
+    'all',
+    'news',
+    'transfer',
+    'match',
+    'analysis',
+    'rumor',
+    'injury',
+  ];
+
+  return allowed.includes(value as AiNewsListOptions['category'])
+    ? value as AiNewsListOptions['category']
+    : 'all';
+}
+
 // 启动服务器
 async function startServer() {
   try {
     // 连接数据库
-    console.log('🔌 正在连接数据库...');
+    logger.info('正在连接数据库...');
     await dbManager.connect();
 
     // 初始化数据库表结构
-    console.log('🚀 正在初始化数据库...');
+    logger.info('正在初始化数据库...');
     await initializeDatabase(dbManager);
 
     // 连接Redis（可选）
     try {
-      console.log('🔌 正在连接Redis...');
+      logger.info('正在连接Redis...');
       await redisManager.connect();
     } catch (error) {
-      console.warn('⚠️  Redis连接失败，继续使用内存缓存:', error.message);
+      logger.warn('Redis连接失败，继续使用内存缓存', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     // 启动HTTP服务器
-    console.log('🚀 启动球探社后端服务...');
-    console.log(`🛠️  运行环境: ${config.env}`);
-    console.log(`🌐 服务地址: http://localhost:${config.port}`);
-    console.log(`📡 API文档: http://localhost:${config.port}/api`);
-    console.log(`💚 健康检查: http://localhost:${config.port}/health`);
+    logger.info('启动球探社后端服务...', {
+      environment: config.env,
+      port: config.port,
+    });
 
     await app.listen({ port: config.port });
   } catch (error) {
-    console.error('❌ 服务启动失败:', error);
+    logger.error('服务启动失败', error instanceof Error ? error : new Error(String(error)));
     Deno.exit(1);
   }
 }
 
 // 优雅关闭
 async function gracefulShutdown() {
-  console.log('\n📴 正在关闭服务...');
+  logger.info('正在关闭服务...');
 
   try {
     await dbManager.disconnect();
     await redisManager.disconnect();
-    console.log('✅ 服务已安全关闭');
+    logger.info('服务已安全关闭');
   } catch (error) {
-    console.error('❌ 关闭服务时出错:', error);
+    logger.error('关闭服务时出错', error instanceof Error ? error : new Error(String(error)));
   }
 
   Deno.exit(0);
